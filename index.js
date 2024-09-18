@@ -13,7 +13,10 @@ app.use(express.json());
 mongoose
 	.connect(process.env.MONGODB_URI)
 	.then(() => console.log("Connected to MongoDB"))
-	.catch((err) => console.error("Could not connect to MongoDB:", err));
+	.catch((err) => {
+		console.error("Could not connect to MongoDB:", err);
+		process.exit(1);
+	});
 const logFolder = path.join(__dirname, "log");
 const logFileName = () => {
 	const now = new Date();
