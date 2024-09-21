@@ -1,7 +1,11 @@
+const Advantages = require("../models/Advantages");
+const Brands = require("../models/Brands");
+const Category = require("../models/Categories");
 const Directions = require("../models/Directions");
 const Admins = require("../models/Superadmins");
 const Users = require("../models/Users");
 const {createHash, compare} = require("../utils/codeHash");
+const {updateOrAddObject} = require("../utils/db.updater");
 const {createToken, generateHashedToken} = require("../utils/token");
 
 exports.register = async (req, res) => {
@@ -227,6 +231,320 @@ exports.deleteDirectionsById = async (req, res) => {
 			status: true,
 			message: "success",
 			data: direction,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createAdvantages = async (req, res) => {
+	try {
+		const advantages = await Advantages.create(req.body);
+		await advantages.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: advantages,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllAdvantages = async (req, res) => {
+	try {
+		const advantages = await Advantages.find();
+		return res.json({
+			status: true,
+			message: "success",
+			data: advantages,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAdvantagesById = async (req, res) => {
+	try {
+		const advantage = await Advantages.findById(req.params.id);
+		if (!advantage) {
+			return res.status(400).json({
+				status: false,
+				message: "advantage not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: advantage,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateAdvantageById = async (req, res) => {
+	try {
+		const advantage = await Advantages.findByIdAndUpdate(
+			req.params.id,
+			req.body,
+			{new: true},
+		);
+		if (!advantage) {
+			return res.status(400).json({
+				status: false,
+				message: "advantage not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: advantage,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteAdvantagesById = async (req, res) => {
+	try {
+		const advantage = await Advantages.findByIdAndDelete(req.params.id);
+		if (!advantage) {
+			return res.status(400).json({
+				status: false,
+				message: "advantage not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: advantage,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createCategory = async (req, res) => {
+	try {
+		const category = await Category.create(req.body);
+		await category.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: category,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllCategories = async (req, res) => {
+	try {
+		const categories = await Category.find();
+		return res.json({
+			status: true,
+			message: "success",
+			data: categories,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getCategoryById = async (req, res) => {
+	try {
+		const category = await Category.findById(req.params.id);
+		if (!category) {
+			return res.status(400).json({
+				status: false,
+				message: "category not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: category,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateCategoryById = async (req, res) => {
+	try {
+		const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!category) {
+			return res.status(400).json({
+				status: false,
+				message: "category not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: category,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteCategoryById = async (req, res) => {
+	try {
+		const category = await Category.findByIdAndDelete(req.params.id);
+		if (!category) {
+			return res.status(400).json({
+				status: false,
+				message: "category not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: category,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createBrand = async (req, res) => {
+	try {
+		const brand = await Brands.create(req.body);
+		await brand.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: brand,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllBrands = async (req, res) => {
+	try {
+		const brands = await Brands.find().populate("category");
+		return res.json({
+			status: true,
+			message: "success",
+			data: brands,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getBrandById = async (req, res) => {
+	try {
+		const brand = await Brands.findById(req.params.id).populate("category");
+		if (!brand) {
+			return res.status(400).json({
+				status: false,
+				message: "brand not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: brand,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateBrandById = async (req, res) => {
+	try {
+		const brand = await Brands.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!brand) {
+			return res.status(400).json({
+				status: false,
+				message: "brand not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: brand,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteBrandById = async (req, res) => {
+	try {
+		const brand = await Brands.findByIdAndDelete(req.params.id);
+		if (!brand) {
+			return res.status(400).json({
+				status: false,
+				message: "brand not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: brand,
 		});
 	} catch (error) {
 		console.log(error);

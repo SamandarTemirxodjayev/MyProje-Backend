@@ -45,7 +45,7 @@ exports.upload = async (req, res) => {
 				file_name,
 				file_id,
 				file_url,
-				admin_id: req.admin._id,
+				admin_id: req.admin ? req.admin._id : null,
 			});
 			await files.save();
 

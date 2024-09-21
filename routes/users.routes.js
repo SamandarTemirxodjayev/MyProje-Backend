@@ -9,5 +9,8 @@ router.post("/profile", middleware, controller.editProfile);
 router.get("/me", middleware, controller.getMe);
 router.post("/reset-password", middleware, controller.resetPassword);
 router.get("/directions", controller.getDirections);
+router.get("/advantages", controller.getAdvantages);
+router.get("/categories", controller.getCategories);
+router.get("/brands", controller.getBrands);
 
 module.exports = router;

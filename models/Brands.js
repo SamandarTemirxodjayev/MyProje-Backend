@@ -1,20 +1,12 @@
 const {Schema, model} = require("mongoose");
 const {AutoIncrement} = require("../utils/helpers");
 
-const categoryiesSchema = new Schema(
+const brandsSchema = new Schema(
 	{
 		_id: {
 			type: Number,
 		},
-		name_uz: {
-			type: String,
-			required: true,
-		},
-		name_ru: {
-			type: String,
-			required: true,
-		},
-		name_en: {
+		name: {
 			type: String,
 			required: true,
 		},
@@ -22,9 +14,19 @@ const categoryiesSchema = new Schema(
 			type: String,
 			required: true,
 		},
+		category: [
+			{
+				type: Number,
+				ref: "category",
+			},
+		],
 		createdAt: {
 			type: Number,
 			default: Date.now(),
+		},
+		is_adsense: {
+			type: Boolean,
+			default: false,
 		},
 	},
 	{
@@ -32,11 +34,11 @@ const categoryiesSchema = new Schema(
 	},
 );
 
-categoryiesSchema.plugin(AutoIncrement, {
+brandsSchema.plugin(AutoIncrement, {
 	modelName: "category",
 	fieldName: "_id",
 });
 
-const Category = model("category", categoryiesSchema);
+const Brands = model("brands", brandsSchema);
 
-module.exports = Category;
+module.exports = Brands;

@@ -1,20 +1,32 @@
 const {Schema, model} = require("mongoose");
 const {AutoIncrement} = require("../utils/helpers");
 
-const categoryiesSchema = new Schema(
+const advantagesSchema = new Schema(
 	{
 		_id: {
 			type: Number,
 		},
-		name_uz: {
+		title_uz: {
 			type: String,
 			required: true,
 		},
-		name_ru: {
+		title_ru: {
 			type: String,
 			required: true,
 		},
-		name_en: {
+		title_en: {
+			type: String,
+			required: true,
+		},
+		description_uz: {
+			type: String,
+			required: true,
+		},
+		description_ru: {
+			type: String,
+			required: true,
+		},
+		description_en: {
 			type: String,
 			required: true,
 		},
@@ -32,11 +44,11 @@ const categoryiesSchema = new Schema(
 	},
 );
 
-categoryiesSchema.plugin(AutoIncrement, {
-	modelName: "category",
+advantagesSchema.plugin(AutoIncrement, {
+	modelName: "advantages",
 	fieldName: "_id",
 });
 
-const Category = model("category", categoryiesSchema);
+const Advantages = model("advantages", advantagesSchema);
 
-module.exports = Category;
+module.exports = Advantages;

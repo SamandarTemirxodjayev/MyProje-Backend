@@ -1,3 +1,6 @@
+const Advantages = require("../models/Advantages");
+const Brands = require("../models/Brands");
+const Category = require("../models/Categories");
 const Directions = require("../models/Directions");
 const Users = require("../models/Users");
 const {compare, createHash} = require("../utils/codeHash");
@@ -136,6 +139,119 @@ exports.getDirections = async (req, res) => {
 			status: true,
 			message: "success",
 			data: directions,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAdvantages = async (req, res) => {
+	try {
+		const advantages = await Advantages.find();
+		return res.json({
+			status: true,
+			message: "success",
+			data: advantages,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getCategories = async (req, res) => {
+	try {
+		let {page = 1, limit = 10} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		const categories = await Category.find().skip(skip).limit(limit);
+		const total = await Category.countDocuments();
+		const totalPages = Math.ceil(total / limit);
+		return res.json({
+			status: true,
+			message: "success",
+			data: categories,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
+						: null,
+			},
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getBrands = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, category, filter = {}} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let query = {};
+
+		if (category) {
+			const categoryId = parseInt(category);
+			query.category = {
+				$in: [categoryId],
+			};
+		}
+
+		const brands = await Brands.find({...filter})
+			.find(query)
+			.skip(skip)
+			.limit(limit);
+
+		const total = await Brands.countDocuments(query);
+
+		const totalPages = Math.ceil(total / limit);
+		return res.json({
+			status: true,
+			message: "success",
+			data: brands,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}${
+								category ? `&category=${category}` : ""
+						  }`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}${
+								category ? `&category=${category}` : ""
+						  }`
+						: null,
+			},
 		});
 	} catch (error) {
 		console.log(error);
