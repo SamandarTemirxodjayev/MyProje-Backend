@@ -14,5 +14,7 @@ router.get("/directions", controller.getDirections);
 router.get("/advantages", controller.getAdvantages);
 router.get("/categories", controller.getCategories);
 router.get("/brands", controller.getBrands);
+router.get("/links", controller.getLinks);
+router.get("/usage-rules", controller.getUsage);
 
 module.exports = router;

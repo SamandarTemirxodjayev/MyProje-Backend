@@ -622,3 +622,86 @@ exports.updateUsage = async (req, res) => {
 		});
 	}
 };
+exports.getLinks = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", `links.json`);
+	try {
+		let filehandle = await open(filePath, "r");
+		let data = "";
+		for await (const line of filehandle.readLines()) {
+			data += line;
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: JSON.parse(data),
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateLinks = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", `links.json`);
+
+	try {
+		// Read the existing links
+		let fileContent = await fs.readFile(filePath, "utf8");
+		let linksData = JSON.parse(fileContent);
+
+		// Extract the updated links from the request body
+		const {email, phone, instagram, telegram, youtube} = req.body;
+
+		// Generate the updatedAt timestamp from the backend
+		const updatedAt = Date.now(); // Get the current timestamp
+
+		// Find the first (and only) set of links to update
+		if (linksData.length > 0) {
+			let currentLinks = linksData[0];
+
+			// Update each field if it exists in the request body
+			currentLinks.email = email || currentLinks.email;
+			currentLinks.phone = {
+				main: phone?.main || currentLinks.phone.main,
+				secondary: phone?.secondary || currentLinks.phone.secondary,
+			};
+			currentLinks.instagram = instagram || currentLinks.instagram;
+			currentLinks.telegram = telegram || currentLinks.telegram;
+			currentLinks.youtube = youtube || currentLinks.youtube;
+
+			// Update the updatedAt field
+			currentLinks.updatedAt = updatedAt;
+
+			// Save the updated links back into the file
+			linksData[0] = currentLinks;
+		} else {
+			// If no links exist, add a new one
+			linksData.push({
+				email,
+				phone,
+				instagram,
+				telegram,
+				youtube,
+				updatedAt,
+			});
+		}
+
+		// Write the updated links back to the file
+		await fs.writeFile(filePath, JSON.stringify(linksData, null, 2), "utf8");
+
+		// Send success response
+		return res.json({
+			status: true,
+			message: "Links updated successfully",
+			data: linksData,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
