@@ -5,8 +5,11 @@ const Directions = require("../models/Directions");
 const Admins = require("../models/Superadmins");
 const Users = require("../models/Users");
 const {createHash, compare} = require("../utils/codeHash");
-const {updateOrAddObject} = require("../utils/db.updater");
 const {createToken, generateHashedToken} = require("../utils/token");
+const path = require("path");
+const {open} = require("node:fs/promises");
+const fs = require("fs/promises");
+const {sendEmail} = require("../utils/mail");
 
 exports.register = async (req, res) => {
 	try {
@@ -120,6 +123,11 @@ exports.submitUserById = async (req, res) => {
 		const text = `${user.name}-${user._id}`;
 		user.password = await createHash(text);
 		user.is_submit = true;
+		await sendEmail(
+			user.email,
+			`Sizning Ma'lumotlaringiz:\n\n\r<br>Login: ${user.phone_number}\n<br> Parol: ${text}`,
+			`Sizning Ma'lumotlaringiz:\n\n<br> Login: ${user.phone_number}\n <br>Parol: ${text}`,
+		);
 		await user.save();
 		return res.json({
 			status: true,
@@ -548,6 +556,66 @@ exports.deleteBrandById = async (req, res) => {
 		});
 	} catch (error) {
 		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getUsage = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", `usage-rules.json`);
+	try {
+		let filehandle = await open(filePath, "r");
+		let data = "";
+		for await (const line of filehandle.readLines()) {
+			data += line;
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: JSON.parse(data),
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateUsage = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", `usage-rules.json`);
+
+	try {
+		// Read the existing usage rules
+		let fileContent = await fs.readFile(filePath, "utf8");
+		let usageRules = JSON.parse(fileContent);
+
+		// Extract the updated rule from the request body
+		const {rule} = req.body;
+
+		// Generate the updatedAt timestamp from the backend
+		const updatedAt = Date.now(); // Get the current timestamp
+
+		// Find the index of the rule to update (assuming there's one rule)
+		if (usageRules.length > 0) {
+			usageRules[0] = {rule, updatedAt}; // Replace the first (and only) rule
+		} else {
+			// If no rules exist, add the new one
+			usageRules.push({rule, updatedAt});
+		}
+
+		// Write the updated rules back to the file
+		await fs.writeFile(filePath, JSON.stringify(usageRules, null, 2), "utf8");
+
+		// Send success response
+		return res.json({
+			status: true,
+			message: "Usage rules updated successfully",
+			data: usageRules,
+		});
+	} catch (error) {
+		console.error(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,

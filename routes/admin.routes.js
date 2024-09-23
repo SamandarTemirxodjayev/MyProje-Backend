@@ -33,4 +33,7 @@ router.get("/brands/:id", middleware, controller.getBrandById);
 router.put("/brands/:id", middleware, controller.updateBrandById);
 router.delete("/brands/:id", middleware, controller.deleteBrandById);
 
+router.get("/usage-rules", middleware, controller.getUsage);
+router.post("/usage-rules", middleware, controller.updateUsage)
+
 module.exports = router;

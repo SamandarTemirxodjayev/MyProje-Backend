@@ -8,6 +8,8 @@ router.post("/login", controller.login);
 router.post("/profile", middleware, controller.editProfile);
 router.get("/me", middleware, controller.getMe);
 router.post("/reset-password", middleware, controller.resetPassword);
+router.post("/restore-password", controller.restorePassword);
+router.post("/restore-password/:uuid", controller.restorePasswordConfirm);
 router.get("/directions", controller.getDirections);
 router.get("/advantages", controller.getAdvantages);
 router.get("/categories", controller.getCategories);

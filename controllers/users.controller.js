@@ -1,10 +1,13 @@
 const Advantages = require("../models/Advantages");
 const Brands = require("../models/Brands");
 const Category = require("../models/Categories");
+const Confirmations = require("../models/Confirmations");
 const Directions = require("../models/Directions");
 const Users = require("../models/Users");
 const {compare, createHash} = require("../utils/codeHash");
+const {sendEmail} = require("../utils/mail");
 const {createToken} = require("../utils/token");
+const mongoose = require("mongoose");
 
 exports.register = async (req, res) => {
 	try {
@@ -122,6 +125,139 @@ exports.resetPassword = async (req, res) => {
 			data: {
 				token,
 				user: req.user,
+			},
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.restorePassword = async (req, res) => {
+	try {
+		const {email} = req.body;
+		const user = await Users.findOne({
+			email,
+		});
+		if (!user) {
+			return res.status(400).json({
+				status: false,
+				message: "user not found",
+				data: null,
+			});
+		}
+		let confirmationw = await Confirmations.findOne({data: email});
+
+		if (confirmationw) {
+			let {expired, confirmation} = await Confirmations.checkAndDeleteExpired(
+				confirmationw.uuid,
+			);
+			if (!expired) {
+				return res.status(400).json({
+					status: "waiting",
+					message: "Confirmation already exists",
+					data: {
+						id: confirmation._id,
+						uuid: confirmation.uuid,
+						type: confirmation.type,
+						createdAt: confirmation.createdAt,
+						expiredAt: confirmation.expiredAt,
+					},
+				});
+			}
+		}
+		const id = new mongoose.Types.ObjectId();
+		let code = Math.floor(1000 + Math.random() * 9000);
+		await sendEmail(
+			email,
+			`Tasdiqlash kodi: ${code}`,
+			`Tasdiqlash kodi: ${code}`,
+		);
+		let hashedCode = await createHash(code.toString());
+		const newConfirmation = new Confirmations({
+			type: "email",
+			code: hashedCode,
+			uuid: id,
+			data: email,
+			expiredAt: new Date(Date.now() + 1000 * 2 * 60),
+		});
+		await newConfirmation.save();
+
+		return res.status(200).json({
+			status: 200,
+			message: "Email sent",
+			data: {
+				id: newConfirmation._id,
+				uuid: id,
+				type: "email",
+				createdAt: newConfirmation.createdAt,
+				expiredAt: newConfirmation.expiredAt,
+			},
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.restorePasswordConfirm = async (req, res) => {
+	try {
+		const {uuid} = req.params;
+		const {code} = req.body;
+		const confirmations = await Confirmations.findOne({uuid});
+		if (!confirmations) {
+			return res.status(404).json({
+				status: false,
+				message: "Xatolik",
+			});
+		}
+		const {expired, confirmation} = await Confirmations.checkAndDeleteExpired(
+			uuid,
+		);
+
+		if (expired) {
+			return res.status(400).json({
+				status: false,
+				message: "Qaytadan yuborin, kodni muddati tugagan",
+			});
+		}
+
+		const isMatch = await compare(code.toString(), confirmation.code);
+		if (!isMatch) {
+			return res.status(400).json({
+				status: "error",
+				message: "Kod Xato",
+			});
+		}
+		const user = await Users.findOne({
+			email: confirmation.data,
+		});
+
+		await Confirmations.findOneAndDelete({uuid});
+		const text = `${user.name}-${user._id}`;
+		const password = await createHash(text);
+		user.password = password;
+		await user.save();
+		await sendEmail(
+			user.email,
+			`Sizning Ma'lumotlaringiz:\n\n\r<br>Login: ${user.phone_number}\n<br> Parol: ${text}`,
+			`Sizning Ma'lumotlaringiz:\n\n<br> Login: ${user.phone_number}\n <br>Parol: ${text}`,
+		);
+
+		const token = await createToken(user._id);
+
+		return res.json({
+			status: true,
+			message: "Tasdiqlandi",
+			data: {
+				auth_token: token,
+				token_type: "bearer",
+				createdAt: new Date(),
+				user,
 			},
 		});
 	} catch (error) {
