@@ -10,11 +10,23 @@ router.get("/me", middleware, controller.getMe);
 router.post("/reset-password", middleware, controller.resetPassword);
 router.post("/restore-password", controller.restorePassword);
 router.post("/restore-password/:uuid", controller.restorePasswordConfirm);
-router.get("/directions", controller.getDirections);
-router.get("/advantages", controller.getAdvantages);
-router.get("/categories", controller.getCategories);
-router.get("/brands", controller.getBrands);
-router.get("/links", controller.getLinks);
-router.get("/usage-rules", controller.getUsage);
+router.get("/directions", middleware, controller.getDirections);
+router.get("/advantages", middleware, controller.getAdvantages);
+router.get("/categories", middleware, controller.getCategories);
+router.get("/subcategories", middleware, controller.getSubCategories);
+router.get(
+	"/innercategories/:categoryId",
+	middleware,
+	controller.getSubcategoriesWithInnerCategories,
+);
+router.get("/brands", middleware, controller.getBrands);
+router.get("/links", middleware, controller.getLinks);
+router.get("/usage-rules", middleware, controller.getUsage);
+router.get("/working", controller.getWorking);
+router.get(
+	"/shopping-gid/:limit",
+	middleware,
+	controller.getShoppingGidLimited,
+);
 
 module.exports = router;

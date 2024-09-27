@@ -1,7 +1,7 @@
 const {Schema, model} = require("mongoose");
 const {AutoIncrement} = require("../utils/helpers");
 
-const subcategoryiesSchema = new Schema(
+const innerCategoryiesSchema = new Schema(
 	{
 		_id: {
 			type: Number,
@@ -22,9 +22,9 @@ const subcategoryiesSchema = new Schema(
 			type: String,
 			required: true,
 		},
-		category: {
+		subcategory: {
 			type: Number,
-			ref: "category",
+			ref: "subcategory",
 		},
 		createdAt: {
 			type: Number,
@@ -36,11 +36,11 @@ const subcategoryiesSchema = new Schema(
 	},
 );
 
-subcategoryiesSchema.plugin(AutoIncrement, {
-	modelName: "subcategory",
+innerCategoryiesSchema.plugin(AutoIncrement, {
+	modelName: "innercategory",
 	fieldName: "_id",
 });
 
-const Subcategories = model("subcategory", subcategoryiesSchema);
+const InnerCategory = model("intercategory", innerCategoryiesSchema);
 
-module.exports = Subcategories;
+module.exports = InnerCategory;

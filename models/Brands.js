@@ -1,4 +1,4 @@
-const {Schema, model} = require("mongoose");
+const {Schema, model, default: mongoose} = require("mongoose");
 const {AutoIncrement} = require("../utils/helpers");
 
 const brandsSchema = new Schema(
@@ -13,6 +13,33 @@ const brandsSchema = new Schema(
 		photo_url: {
 			type: String,
 			required: true,
+		},
+		description: {
+			country: {
+				type: String,
+				required: true,
+			},
+			contact: {
+				type: String,
+			},
+			website: {
+				type: String,
+			},
+			history: {
+				type: String,
+			},
+			photo_urls: [
+				{
+					url: {
+						type: String,
+						required: true,
+					},
+					id: {
+						type: String,
+						required: true,
+					},
+				},
+			],
 		},
 		category: [
 			{
@@ -35,7 +62,7 @@ const brandsSchema = new Schema(
 );
 
 brandsSchema.plugin(AutoIncrement, {
-	modelName: "category",
+	modelName: "brands",
 	fieldName: "_id",
 });
 

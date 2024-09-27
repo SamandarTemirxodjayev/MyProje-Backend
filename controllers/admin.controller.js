@@ -10,6 +10,9 @@ const path = require("path");
 const {open} = require("node:fs/promises");
 const fs = require("fs/promises");
 const {sendEmail} = require("../utils/mail");
+const InnerCategory = require("../models/InnerCategory");
+const ShoppingGid = require("../models/ShoppingGid");
+const Subcategories = require("../models/Subcategories");
 
 exports.register = async (req, res) => {
 	try {
@@ -458,6 +461,249 @@ exports.deleteCategoryById = async (req, res) => {
 		});
 	}
 };
+exports.createSubCategory = async (req, res) => {
+	try {
+		const subcategory = await Subcategories.create(req.body);
+		await subcategory.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: subcategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllSubCategories = async (req, res) => {
+	try {
+		const subcategory = await Subcategories.find();
+		return res.json({
+			status: true,
+			message: "success",
+			data: subcategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getSubCategoryById = async (req, res) => {
+	try {
+		const subcategory = await Subcategories.findById(req.params.id);
+		if (!subcategory) {
+			return res.status(400).json({
+				status: false,
+				message: "subcategory not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: subcategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateSubCategoryById = async (req, res) => {
+	try {
+		const subcategory = await Subcategories.findByIdAndUpdate(
+			req.params.id,
+			req.body,
+			{
+				new: true,
+			},
+		);
+		if (!subcategory) {
+			return res.status(400).json({
+				status: false,
+				message: "subcategory not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: subcategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteSubCategoryById = async (req, res) => {
+	try {
+		const subcategory = await Subcategories.findByIdAndDelete(req.params.id);
+		if (!subcategory) {
+			return res.status(400).json({
+				status: false,
+				message: "subcategory not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: subcategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createInnerCategory = async (req, res) => {
+	try {
+		const innercategory = await InnerCategory.create(req.body);
+		await innercategory.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: innercategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllInnerCategories = async (req, res) => {
+	try {
+		const innercategory = await InnerCategory.find().populate("subcategory");
+		return res.json({
+			status: true,
+			message: "success",
+			data: innercategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getInnerCategoryById = async (req, res) => {
+	try {
+		const innercategory = await InnerCategory.findById(req.params.id).populate(
+			"subcategory",
+		);
+		if (!innercategory) {
+			return res.status(400).json({
+				status: false,
+				message: "innercategory not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: innercategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getInnerCategoriesGetByCategoriesId = async (req, res) => {
+	try {
+		const innercategory = await InnerCategory.find({
+			subcategory: req.params.id,
+		});
+		if (!innercategory) {
+			return res.status(400).json({
+				status: false,
+				message: "innercategories not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: innercategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateInnerCategoryById = async (req, res) => {
+	try {
+		const innercategory = await InnerCategory.findByIdAndUpdate(
+			req.params.id,
+			req.body,
+			{
+				new: true,
+			},
+		);
+		if (!innercategory) {
+			return res.status(400).json({
+				status: false,
+				message: "innercategory not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: innercategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteInnerCategoryById = async (req, res) => {
+	try {
+		const innercategory = await InnerCategory.findByIdAndDelete(req.params.id);
+		if (!innercategory) {
+			return res.status(400).json({
+				status: false,
+				message: "innercategory not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: innercategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.createBrand = async (req, res) => {
 	try {
 		const brand = await Brands.create(req.body);
@@ -699,6 +945,216 @@ exports.updateLinks = async (req, res) => {
 		});
 	} catch (error) {
 		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getIsWorking = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", `is-working.json`);
+	try {
+		let filehandle = await open(filePath, "r");
+		let data = "";
+		for await (const line of filehandle.readLines()) {
+			data += line;
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: JSON.parse(data),
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateLinks = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", "is-working.json");
+
+	try {
+		// Read the existing file content
+		let fileContent;
+		try {
+			fileContent = await fs.readFile(filePath, "utf8");
+		} catch (err) {
+			// If file doesn't exist, initialize it as an empty array
+			fileContent = "[]";
+		}
+
+		// Parse the JSON content
+		let linksData = JSON.parse(fileContent);
+
+		// Extract the updated value from the request body
+		const {isworking} = req.body;
+
+		// Validate if `isworking` is provided
+		if (typeof isworking === "undefined") {
+			return res.status(400).json({
+				status: false,
+				message: "`isworking` field is required in the request body",
+			});
+		}
+
+		// Get the current timestamp for `updatedAt`
+		const updatedAt = Date.now();
+
+		// If data exists, update the first record, otherwise create a new one
+		if (linksData.length > 0) {
+			let currentLinks = linksData[0];
+
+			// Update the field and timestamp
+			currentLinks.isworking = isworking;
+			currentLinks.updatedAt = updatedAt;
+
+			// Save the updated data back
+			linksData[0] = currentLinks;
+		} else {
+			// If no data exists, create a new entry
+			linksData.push({
+				isworking,
+				updatedAt,
+			});
+		}
+
+		// Write the updated content back to the file
+		await fs.writeFile(filePath, JSON.stringify(linksData, null, 2), "utf8");
+
+		// Respond with success
+		return res.json({
+			status: true,
+			message: "`isworking` updated successfully",
+			data: linksData,
+		});
+	} catch (error) {
+		console.error("Error updating links:", error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createShoppingGid = async (req, res) => {
+	try {
+		const shoppingGid = await ShoppingGid.create(req.body);
+		await shoppingGid.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: shoppingGid,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllShoppingGids = async (req, res) => {
+	try {
+		const shoppingGid = await ShoppingGid.find().populate("brand");
+		return res.json({
+			status: true,
+			message: "success",
+			data: shoppingGid,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getActiveLimitedShoppingGids = async (req, res) => {
+	try {
+		const shoppingGid = await ShoppingGid.findActiveLimited(
+			req.params.limit,
+		).populate("brand");
+		return res.json({
+			status: true,
+			message: "success",
+			data: shoppingGid,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getShoppingGidById = async (req, res) => {
+	try {
+		const shoppingGid = await ShoppingGid.findById(req.params.id);
+		if (!shoppingGid) {
+			return res.status(400).json({
+				status: false,
+				message: "shoppingGid not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: shoppingGid,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateShoppingGidById = async (req, res) => {
+	try {
+		const shoppingGid = await ShoppingGid.findByIdAndUpdate(
+			req.params.id,
+			req.body,
+			{new: true},
+		);
+		if (!shoppingGid) {
+			return res.status(400).json({
+				status: false,
+				message: "shoppingGid not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: shoppingGid,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteShoppingGidById = async (req, res) => {
+	try {
+		const shoppingGid = await ShoppingGid.findByIdAndDelete(req.params.id);
+		if (!shoppingGid) {
+			return res.status(400).json({
+				status: false,
+				message: "shoppingGid not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: shoppingGid,
+		});
+	} catch (error) {
+		console.log(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,

@@ -10,6 +10,9 @@ const {createToken} = require("../utils/token");
 const mongoose = require("mongoose");
 const path = require("path");
 const {open} = require("node:fs/promises");
+const ShoppingGid = require("../models/ShoppingGid");
+const Subcategories = require("../models/Subcategories");
+const InnerCategory = require("../models/InnerCategory");
 
 exports.register = async (req, res) => {
 	try {
@@ -302,6 +305,22 @@ exports.getAdvantages = async (req, res) => {
 		});
 	}
 };
+exports.getSubCategories = async (req, res) => {
+	try {
+		const subcategories = await Subcategories.find();
+		return res.json({
+			status: true,
+			message: "success",
+			data: subcategories,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getCategories = async (req, res) => {
 	try {
 		let {page = 1, limit = 10} = req.query;
@@ -435,6 +454,80 @@ exports.getUsage = async (req, res) => {
 		});
 	} catch (error) {
 		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getWorking = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", `is-working.json`);
+	try {
+		let filehandle = await open(filePath, "r");
+		let data = "";
+		for await (const line of filehandle.readLines()) {
+			data += line;
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: JSON.parse(data),
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getShoppingGidLimited = async (req, res) => {
+	try {
+		const shoppingGids = await ShoppingGid.findActiveLimited(
+			req.params.limit,
+		).populate("brand");
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: shoppingGids,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getSubcategoriesWithInnerCategories = async (req, res) => {
+	try {
+		const {categoryId} = req.params;
+
+		const subcategories = await Subcategories.find({
+			category: categoryId,
+		}).lean();
+
+		const subcategoriesWithInnerCategories = await Promise.all(
+			subcategories.map(async (subcategory) => {
+				const innerCategories = await InnerCategory.find({
+					subcategory: subcategory._id,
+				}).lean();
+
+				return {
+					...subcategory,
+					innerCategories,
+				};
+			}),
+		);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: subcategoriesWithInnerCategories,
+		});
+	} catch (error) {
+		console.error(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,

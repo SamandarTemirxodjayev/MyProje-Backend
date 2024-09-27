@@ -48,6 +48,12 @@ const usersSchema = new Schema(
 			type: Boolean,
 			default: false,
 		},
+		visitedRoutes: [
+			{
+				route: {type: String},
+				count: {type: Number, default: 0},
+			},
+		],
 	},
 	{
 		versionKey: false,

@@ -27,6 +27,35 @@ router.get("/categories/:id", middleware, controller.getCategoryById);
 router.put("/categories/:id", middleware, controller.updateCategoryById);
 router.delete("/categories/:id", middleware, controller.deleteCategoryById);
 
+router.post("/subcategories", middleware, controller.createSubCategory);
+router.get("/subcategories", middleware, controller.getAllSubCategories);
+router.get("/subcategories/:id", middleware, controller.getSubCategoryById);
+router.put("/subcategories/:id", middleware, controller.updateSubCategoryById);
+router.delete(
+	"/subcategories/:id",
+	middleware,
+	controller.deleteSubCategoryById,
+);
+
+router.post("/innercategories", middleware, controller.createInnerCategory);
+router.get("/innercategories", middleware, controller.getAllInnerCategories);
+router.get("/innercategory/:id", middleware, controller.getInnerCategoryById);
+router.get(
+	"/innercategories/:id",
+	middleware,
+	controller.getInnerCategoriesGetByCategoriesId,
+);
+router.put(
+	"/innercategories/:id",
+	middleware,
+	controller.updateInnerCategoryById,
+);
+router.delete(
+	"/innercategories/:id",
+	middleware,
+	controller.deleteInnerCategoryById,
+);
+
 router.post("/brands", middleware, controller.createBrand);
 router.get("/brands", middleware, controller.getAllBrands);
 router.get("/brands/:id", middleware, controller.getBrandById);
@@ -38,5 +67,23 @@ router.post("/usage-rules", middleware, controller.updateUsage);
 
 router.get("/links", middleware, controller.getLinks);
 router.post("/links", middleware, controller.updateLinks);
+
+router.get("/working", middleware, controller.getIsWorking);
+router.post("/working", middleware, controller.updateLinks);
+
+router.post("/shopping-gid", middleware, controller.createShoppingGid);
+router.get("/shopping-gid", middleware, controller.getAllShoppingGids);
+router.get(
+	"/shopping-gid/limited/:limit",
+	middleware,
+	controller.getActiveLimitedShoppingGids,
+);
+router.get("/shopping-gid/:id", middleware, controller.getShoppingGidById);
+router.put("/shopping-gid/:id", middleware, controller.updateShoppingGidById);
+router.delete(
+	"/shopping-gid/:id",
+	middleware,
+	controller.deleteShoppingGidById,
+);
 
 module.exports = router;
