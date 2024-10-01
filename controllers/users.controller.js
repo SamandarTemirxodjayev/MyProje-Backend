@@ -13,6 +13,7 @@ const {open} = require("node:fs/promises");
 const ShoppingGid = require("../models/ShoppingGid");
 const Subcategories = require("../models/Subcategories");
 const InnerCategory = require("../models/InnerCategory");
+const Products = require("../models/Products");
 
 exports.register = async (req, res) => {
 	try {
@@ -525,6 +526,57 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 			status: true,
 			message: "success",
 			data: subcategoriesWithInnerCategories,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getProducts = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, filter = {}} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let query = {};
+
+		const products = await Products.find({...filter})
+			.find(query)
+			.skip(skip)
+			.limit(limit)
+			.populate("category")
+			.populate("subcategory")
+			.populate("intercategory")
+			.populate("brands");
+
+		const total = await Products.countDocuments(query);
+
+		const totalPages = Math.ceil(total / limit);
+		return res.json({
+			status: true,
+			message: "success",
+			data: products,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
+						: null,
+			},
 		});
 	} catch (error) {
 		console.error(error);

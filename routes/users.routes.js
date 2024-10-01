@@ -28,5 +28,6 @@ router.get(
 	middleware,
 	controller.getShoppingGidLimited,
 );
+router.get("/products", middleware, controller.getProducts)
 
 module.exports = router;

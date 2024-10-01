@@ -13,6 +13,8 @@ const {sendEmail} = require("../utils/mail");
 const InnerCategory = require("../models/InnerCategory");
 const ShoppingGid = require("../models/ShoppingGid");
 const Subcategories = require("../models/Subcategories");
+const Products = require("../models/Products");
+const {modifyResponseByLang} = require("../utils/helpers");
 
 exports.register = async (req, res) => {
 	try {
@@ -164,7 +166,9 @@ exports.createDirections = async (req, res) => {
 };
 exports.getAllDirections = async (req, res) => {
 	try {
-		const directions = await Directions.find();
+		const {lang} = req.query;
+		let directions = await Directions.find();
+		directions = modifyResponseByLang(directions, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -180,7 +184,8 @@ exports.getAllDirections = async (req, res) => {
 };
 exports.getDirectionById = async (req, res) => {
 	try {
-		const direction = await Directions.findById(req.params.id);
+		const {lang} = req.query;
+		let direction = await Directions.findById(req.params.id);
 		if (!direction) {
 			return res.status(400).json({
 				status: false,
@@ -188,6 +193,7 @@ exports.getDirectionById = async (req, res) => {
 				data: null,
 			});
 		}
+		direction = modifyResponseByLang(direction, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -270,7 +276,12 @@ exports.createAdvantages = async (req, res) => {
 };
 exports.getAllAdvantages = async (req, res) => {
 	try {
-		const advantages = await Advantages.find();
+		const {lang} = req.query;
+		let advantages = await Advantages.find();
+		advantages = modifyResponseByLang(advantages, lang, [
+			"title",
+			"description",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -286,7 +297,8 @@ exports.getAllAdvantages = async (req, res) => {
 };
 exports.getAdvantagesById = async (req, res) => {
 	try {
-		const advantage = await Advantages.findById(req.params.id);
+		const {lang} = req.query;
+		let advantage = await Advantages.findById(req.params.id);
 		if (!advantage) {
 			return res.status(400).json({
 				status: false,
@@ -294,6 +306,7 @@ exports.getAdvantagesById = async (req, res) => {
 				data: null,
 			});
 		}
+		advantage = modifyResponseByLang(advantage, lang, ["title", "description"]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -359,7 +372,7 @@ exports.deleteAdvantagesById = async (req, res) => {
 };
 exports.createCategory = async (req, res) => {
 	try {
-		const category = await Category.create(req.body);
+		let category = await Category.create(req.body);
 		await category.save();
 		return res.json({
 			status: true,
@@ -376,7 +389,9 @@ exports.createCategory = async (req, res) => {
 };
 exports.getAllCategories = async (req, res) => {
 	try {
-		const categories = await Category.find();
+		const {lang} = req.query;
+		let categories = await Category.find();
+		categories = modifyResponseByLang(categories, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -392,7 +407,8 @@ exports.getAllCategories = async (req, res) => {
 };
 exports.getCategoryById = async (req, res) => {
 	try {
-		const category = await Category.findById(req.params.id);
+		const {lang} = req.query;
+		let category = await Category.findById(req.params.id);
 		if (!category) {
 			return res.status(400).json({
 				status: false,
@@ -400,6 +416,7 @@ exports.getCategoryById = async (req, res) => {
 				data: null,
 			});
 		}
+		category = modifyResponseByLang(category, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -480,7 +497,12 @@ exports.createSubCategory = async (req, res) => {
 };
 exports.getAllSubCategories = async (req, res) => {
 	try {
-		const subcategory = await Subcategories.find();
+		const {lang} = req.query;
+		let subcategory = await Subcategories.find().populate("category");
+		subcategory = modifyResponseByLang(subcategory, lang, [
+			"category.name",
+			"name",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -496,7 +518,11 @@ exports.getAllSubCategories = async (req, res) => {
 };
 exports.getSubCategoryById = async (req, res) => {
 	try {
-		const subcategory = await Subcategories.findById(req.params.id);
+		const {lang} = req.query;
+		let subcategory = await Subcategories.findById(req.params.id).populate(
+			"category",
+		);
+
 		if (!subcategory) {
 			return res.status(400).json({
 				status: false,
@@ -504,6 +530,13 @@ exports.getSubCategoryById = async (req, res) => {
 				data: null,
 			});
 		}
+
+		// Modify the response including populated fields
+		subcategory = modifyResponseByLang(subcategory, lang, [
+			"name",
+			"category.name",
+		]);
+
 		return res.json({
 			status: true,
 			message: "success",
@@ -517,6 +550,7 @@ exports.getSubCategoryById = async (req, res) => {
 		});
 	}
 };
+
 exports.updateSubCategoryById = async (req, res) => {
 	try {
 		const subcategory = await Subcategories.findByIdAndUpdate(
@@ -588,7 +622,12 @@ exports.createInnerCategory = async (req, res) => {
 };
 exports.getAllInnerCategories = async (req, res) => {
 	try {
-		const innercategory = await InnerCategory.find().populate("subcategory");
+		const {lang} = req.query;
+		let innercategory = await InnerCategory.find().populate("subcategory");
+		innercategory = modifyResponseByLang(innercategory, lang, [
+			"name",
+			"subcategory.name",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -604,7 +643,8 @@ exports.getAllInnerCategories = async (req, res) => {
 };
 exports.getInnerCategoryById = async (req, res) => {
 	try {
-		const innercategory = await InnerCategory.findById(req.params.id).populate(
+		const {lang} = req.query;
+		let innercategory = await InnerCategory.findById(req.params.id).populate(
 			"subcategory",
 		);
 		if (!innercategory) {
@@ -614,6 +654,10 @@ exports.getInnerCategoryById = async (req, res) => {
 				data: null,
 			});
 		}
+		innercategory = modifyResponseByLang(innercategory, lang, [
+			"name",
+			"subcategory.name",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -629,7 +673,8 @@ exports.getInnerCategoryById = async (req, res) => {
 };
 exports.getInnerCategoriesGetByCategoriesId = async (req, res) => {
 	try {
-		const innercategory = await InnerCategory.find({
+		const {lang} = req.query;
+		let innercategory = await InnerCategory.find({
 			subcategory: req.params.id,
 		});
 		if (!innercategory) {
@@ -639,6 +684,10 @@ exports.getInnerCategoriesGetByCategoriesId = async (req, res) => {
 				data: null,
 			});
 		}
+		innercategory = modifyResponseByLang(innercategory, lang, [
+			"name",
+			"subcategory.name",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -723,7 +772,12 @@ exports.createBrand = async (req, res) => {
 };
 exports.getAllBrands = async (req, res) => {
 	try {
-		const brands = await Brands.find().populate("category");
+		const {lang} = req.query;
+		let brands = await Brands.find().populate("category");
+		brands = modifyResponseByLang(brands, lang, [
+			"description.history",
+			"category.name",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -739,7 +793,8 @@ exports.getAllBrands = async (req, res) => {
 };
 exports.getBrandById = async (req, res) => {
 	try {
-		const brand = await Brands.findById(req.params.id).populate("category");
+		const {lang} = req.query;
+		let brand = await Brands.findById(req.params.id).populate("category");
 		if (!brand) {
 			return res.status(400).json({
 				status: false,
@@ -747,6 +802,10 @@ exports.getBrandById = async (req, res) => {
 				data: null,
 			});
 		}
+		brand = modifyResponseByLang(brand, lang, [
+			"description.history",
+			"category.name",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -809,6 +868,7 @@ exports.deleteBrandById = async (req, res) => {
 	}
 };
 exports.getUsage = async (req, res) => {
+	const {lang} = req.query;
 	const filePath = path.join(__dirname, "../database", `usage-rules.json`);
 	try {
 		let filehandle = await open(filePath, "r");
@@ -816,10 +876,11 @@ exports.getUsage = async (req, res) => {
 		for await (const line of filehandle.readLines()) {
 			data += line;
 		}
+		data = modifyResponseByLang(JSON.parse(data), lang, ["rule"]);
 		return res.json({
 			status: true,
 			message: "success",
-			data: JSON.parse(data),
+			data,
 		});
 	} catch (error) {
 		console.log(error);
@@ -837,18 +898,26 @@ exports.updateUsage = async (req, res) => {
 		let fileContent = await fs.readFile(filePath, "utf8");
 		let usageRules = JSON.parse(fileContent);
 
-		// Extract the updated rule from the request body
-		const {rule} = req.body;
+		// Extract the updated rules for different languages from the request body
+		const {rule_uz, rule_en, rule_ru} = req.body;
 
 		// Generate the updatedAt timestamp from the backend
 		const updatedAt = Date.now(); // Get the current timestamp
 
+		// Create the updated rule object with language-specific rules
+		const updatedRule = {
+			rule_uz,
+			rule_en,
+			rule_ru,
+			updatedAt,
+		};
+
 		// Find the index of the rule to update (assuming there's one rule)
 		if (usageRules.length > 0) {
-			usageRules[0] = {rule, updatedAt}; // Replace the first (and only) rule
+			usageRules[0] = updatedRule; // Replace the first (and only) rule
 		} else {
 			// If no rules exist, add the new one
-			usageRules.push({rule, updatedAt});
+			usageRules.push(updatedRule);
 		}
 
 		// Write the updated rules back to the file
@@ -868,6 +937,7 @@ exports.updateUsage = async (req, res) => {
 		});
 	}
 };
+
 exports.getLinks = async (req, res) => {
 	const filePath = path.join(__dirname, "../database", `links.json`);
 	try {
@@ -1056,7 +1126,12 @@ exports.createShoppingGid = async (req, res) => {
 };
 exports.getAllShoppingGids = async (req, res) => {
 	try {
-		const shoppingGid = await ShoppingGid.find().populate("brand");
+		const {lang} = req.query;
+		let shoppingGid = await ShoppingGid.find().populate("brand");
+		shoppingGid = modifyResponseByLang(shoppingGid, lang, [
+			"name",
+			"description",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -1072,9 +1147,15 @@ exports.getAllShoppingGids = async (req, res) => {
 };
 exports.getActiveLimitedShoppingGids = async (req, res) => {
 	try {
-		const shoppingGid = await ShoppingGid.findActiveLimited(
+		const {lang} = req.query;
+		let shoppingGid = await ShoppingGid.findActiveLimited(
 			req.params.limit,
 		).populate("brand");
+		shoppingGid = modifyResponseByLang(shoppingGid, lang, [
+			"name",
+			"description",
+		]);
+		console.log(shoppingGid);
 		return res.json({
 			status: true,
 			message: "success",
@@ -1090,7 +1171,8 @@ exports.getActiveLimitedShoppingGids = async (req, res) => {
 };
 exports.getShoppingGidById = async (req, res) => {
 	try {
-		const shoppingGid = await ShoppingGid.findById(req.params.id);
+		const {lang} = req.query;
+		let shoppingGid = await ShoppingGid.findById(req.params.id);
 		if (!shoppingGid) {
 			return res.status(400).json({
 				status: false,
@@ -1098,6 +1180,10 @@ exports.getShoppingGidById = async (req, res) => {
 				data: null,
 			});
 		}
+		shoppingGid = modifyResponseByLang(shoppingGid, lang, [
+			"name",
+			"description",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -1161,3 +1247,127 @@ exports.deleteShoppingGidById = async (req, res) => {
 		});
 	}
 };
+exports.createProducts = async (req, res) => {
+	try {
+		const product = await Products.create(req.body);
+		await product.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: product,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+// exports.getAllShoppingGids = async (req, res) => {
+// 	try {
+// 		const shoppingGid = await ShoppingGid.find().populate("brand");
+// 		return res.json({
+// 			status: true,
+// 			message: "success",
+// 			data: shoppingGid,
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({
+// 			status: false,
+// 			message: error.message,
+// 		});
+// // 	}
+// // };
+// exports.getActiveLimitedShoppingGids = async (req, res) => {
+// 	try {
+// 		const shoppingGid = await ShoppingGid.findActiveLimited(
+// 			req.params.limit,
+// 		).populate("brand");
+// 		return res.json({
+// 			status: true,
+// 			message: "success",
+// 			data: shoppingGid,
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({
+// 			status: false,
+// 			message: error.message,
+// 		});
+// 	}
+// };
+// exports.getShoppingGidById = async (req, res) => {
+// 	try {
+// 		const shoppingGid = await ShoppingGid.findById(req.params.id);
+// 		if (!shoppingGid) {
+// 			return res.status(400).json({
+// 				status: false,
+// 				message: "shoppingGid not found",
+// 				data: null,
+// 			});
+// 		}
+// 		return res.json({
+// 			status: true,
+// 			message: "success",
+// 			data: shoppingGid,
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({
+// 			status: false,
+// 			message: error.message,
+// 		});
+// 	}
+// };
+// exports.updateShoppingGidById = async (req, res) => {
+// 	try {
+// 		const shoppingGid = await ShoppingGid.findByIdAndUpdate(
+// 			req.params.id,
+// 			req.body,
+// 			{new: true},
+// 		);
+// 		if (!shoppingGid) {
+// 			return res.status(400).json({
+// 				status: false,
+// 				message: "shoppingGid not found",
+// 				data: null,
+// 			});
+// 		}
+// 		return res.json({
+// 			status: true,
+// 			message: "success",
+// 			data: shoppingGid,
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({
+// 			status: false,
+// 			message: error.message,
+// 		});
+// 	}
+// };
+// exports.deleteShoppingGidById = async (req, res) => {
+// 	try {
+// 		const shoppingGid = await ShoppingGid.findByIdAndDelete(req.params.id);
+// 		if (!shoppingGid) {
+// 			return res.status(400).json({
+// 				status: false,
+// 				message: "shoppingGid not found",
+// 				data: null,
+// 			});
+// 		}
+// 		return res.json({
+// 			status: true,
+// 			message: "success",
+// 			data: shoppingGid,
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({
+// 			status: false,
+// 			message: error.message,
+// 		});
+// 	}
+// };

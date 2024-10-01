@@ -1,4 +1,4 @@
-const {Schema, model, default: mongoose} = require("mongoose");
+const {Schema, model} = require("mongoose");
 const {AutoIncrement} = require("../utils/helpers");
 
 const brandsSchema = new Schema(
@@ -25,7 +25,13 @@ const brandsSchema = new Schema(
 			website: {
 				type: String,
 			},
-			history: {
+			history_uz: {
+				type: String,
+			},
+			history_ru: {
+				type: String,
+			},
+			history_en: {
 				type: String,
 			},
 			photo_urls: [

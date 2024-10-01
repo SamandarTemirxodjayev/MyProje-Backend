@@ -1,6 +1,8 @@
 [
   {
-    "rule": "Hello World",
-    "updatedAt": 1727074630688
+    "rule_uz": "Hello World uz",
+    "rule_en": "Hello World en",
+    "rule_ru": "Hello World ru",
+    "updatedAt": 1727786455681
   }
 ]

@@ -31,3 +31,62 @@ exports.AutoIncrement = function (schema, options) {
 		}
 	});
 };
+exports.modifyResponseByLang = (data, lang, keys = []) => {
+	const acceptedLangs = ["uz", "ru", "en"];
+
+	const mapObjectByLang = (obj) => {
+		// Convert the document into a plain object if it's a Mongoose document
+		const modifiedObj = JSON.parse(JSON.stringify(obj));
+
+		// If lang is valid, map fields to specific language, else return all languages
+		if (acceptedLangs.includes(lang)) {
+			keys.forEach((key) => {
+				// Handle nested fields for populated data, like 'category.name'
+				const keyParts = key.split(".");
+				if (keyParts.length > 1) {
+					const [parentKey, childKey] = keyParts;
+					if (modifiedObj[parentKey]) {
+						if (Array.isArray(modifiedObj[parentKey])) {
+							// If it's an array, iterate over each item
+							modifiedObj[parentKey].forEach((item) => {
+								if (item && item[`${childKey}_${lang}`]) {
+									item[childKey] = item[`${childKey}_${lang}`];
+									// Delete other language-specific fields
+									delete item[`${childKey}_uz`];
+									delete item[`${childKey}_ru`];
+									delete item[`${childKey}_en`];
+								}
+							});
+						} else if (modifiedObj[parentKey][`${childKey}_${lang}`]) {
+							// If it's not an array, handle it as before
+							modifiedObj[parentKey][childKey] =
+								modifiedObj[parentKey][`${childKey}_${lang}`];
+							// Delete language-specific fields
+							delete modifiedObj[parentKey][`${childKey}_uz`];
+							delete modifiedObj[parentKey][`${childKey}_ru`];
+							delete modifiedObj[parentKey][`${childKey}_en`];
+						}
+					}
+				} else {
+					if (modifiedObj[`${key}_${lang}`]) {
+						// Assign the language-specific field
+						modifiedObj[key] = modifiedObj[`${key}_${lang}`];
+
+						// Delete other language-specific fields
+						delete modifiedObj[`${key}_uz`];
+						delete modifiedObj[`${key}_ru`];
+						delete modifiedObj[`${key}_en`];
+					}
+				}
+			});
+		}
+		return modifiedObj;
+	};
+
+	// Handle arrays of objects or single objects
+	if (Array.isArray(data)) {
+		return data.map((item) => mapObjectByLang(item));
+	} else {
+		return mapObjectByLang(data);
+	}
+};

@@ -86,4 +86,10 @@ router.delete(
 	controller.deleteShoppingGidById,
 );
 
+router.post("/products", middleware, controller.createProducts);
+router.get("/brands", middleware, controller.getAllBrands);
+router.get("/brands/:id", middleware, controller.getBrandById);
+router.put("/brands/:id", middleware, controller.updateBrandById);
+router.delete("/brands/:id", middleware, controller.deleteBrandById);
+
 module.exports = router;
