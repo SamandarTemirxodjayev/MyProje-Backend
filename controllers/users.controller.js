@@ -14,6 +14,7 @@ const ShoppingGid = require("../models/ShoppingGid");
 const Subcategories = require("../models/Subcategories");
 const InnerCategory = require("../models/InnerCategory");
 const Products = require("../models/Products");
+const {modifyResponseByLang} = require("../utils/helpers");
 
 exports.register = async (req, res) => {
 	try {
@@ -276,7 +277,9 @@ exports.restorePasswordConfirm = async (req, res) => {
 };
 exports.getDirections = async (req, res) => {
 	try {
-		const directions = await Directions.find();
+		const {lang} = req.query;
+		let directions = await Directions.find();
+		directions = modifyResponseByLang(directions, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -292,7 +295,12 @@ exports.getDirections = async (req, res) => {
 };
 exports.getAdvantages = async (req, res) => {
 	try {
-		const advantages = await Advantages.find();
+		const {lang} = req.query;
+		let advantages = await Advantages.find();
+		advantages = modifyResponseByLang(advantages, lang, [
+			"title",
+			"description",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -308,7 +316,9 @@ exports.getAdvantages = async (req, res) => {
 };
 exports.getSubCategories = async (req, res) => {
 	try {
-		const subcategories = await Subcategories.find();
+		const {lang} = req.query;
+		let subcategories = await Subcategories.find();
+		subcategories = modifyResponseByLang(subcategories, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -324,13 +334,15 @@ exports.getSubCategories = async (req, res) => {
 };
 exports.getCategories = async (req, res) => {
 	try {
+		const {lang} = req.query;
 		let {page = 1, limit = 10} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
-		const categories = await Category.find().skip(skip).limit(limit);
+		let categories = await Category.find().skip(skip).limit(limit);
 		const total = await Category.countDocuments();
 		const totalPages = Math.ceil(total / limit);
+		categories = modifyResponseByLang(categories, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -441,6 +453,7 @@ exports.getLinks = async (req, res) => {
 	}
 };
 exports.getUsage = async (req, res) => {
+	const {lang} = req.query;
 	const filePath = path.join(__dirname, "../database", `usage-rules.json`);
 	try {
 		let filehandle = await open(filePath, "r");
@@ -448,10 +461,11 @@ exports.getUsage = async (req, res) => {
 		for await (const line of filehandle.readLines()) {
 			data += line;
 		}
+		data = modifyResponseByLang(JSON.parse(data), lang, ["rule"]);
 		return res.json({
 			status: true,
 			message: "success",
-			data: JSON.parse(data),
+			data,
 		});
 	} catch (error) {
 		console.log(error);
@@ -484,10 +498,14 @@ exports.getWorking = async (req, res) => {
 };
 exports.getShoppingGidLimited = async (req, res) => {
 	try {
-		const shoppingGids = await ShoppingGid.findActiveLimited(
+		const {lang} = req.query;
+		let shoppingGids = await ShoppingGid.findActiveLimited(
 			req.params.limit,
 		).populate("brand");
-
+		shoppingGids = modifyResponseByLang(shoppingGids, lang, [
+			"name",
+			"description",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -503,13 +521,14 @@ exports.getShoppingGidLimited = async (req, res) => {
 };
 exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 	try {
+		const {lang} = req.query;
 		const {categoryId} = req.params;
 
 		const subcategories = await Subcategories.find({
 			category: categoryId,
 		}).lean();
 
-		const subcategoriesWithInnerCategories = await Promise.all(
+		let subcategoriesWithInnerCategories = await Promise.all(
 			subcategories.map(async (subcategory) => {
 				const innerCategories = await InnerCategory.find({
 					subcategory: subcategory._id,
@@ -520,6 +539,11 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 					innerCategories,
 				};
 			}),
+		);
+		subcategoriesWithInnerCategories = modifyResponseByLang(
+			subcategoriesWithInnerCategories,
+			lang,
+			["name", "innerCategories.name"],
 		);
 
 		return res.json({
