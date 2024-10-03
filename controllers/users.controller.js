@@ -500,7 +500,7 @@ exports.getShoppingGidLimited = async (req, res) => {
 	try {
 		const {lang} = req.query;
 		let shoppingGids = await ShoppingGid.findActiveLimited(
-			req.params.limit,
+			req.query.limit,
 		).populate("brand");
 		shoppingGids = modifyResponseByLang(shoppingGids, lang, [
 			"name",

@@ -23,11 +23,7 @@ router.get("/brands", middleware, controller.getBrands);
 router.get("/links", middleware, controller.getLinks);
 router.get("/usage-rules", middleware, controller.getUsage);
 router.get("/working", controller.getWorking);
-router.get(
-	"/shopping-gid/:limit",
-	middleware,
-	controller.getShoppingGidLimited,
-);
-router.get("/products", middleware, controller.getProducts)
+router.get("/shopping-gid", middleware, controller.getShoppingGidLimited);
+router.get("/products", middleware, controller.getProducts);
 
 module.exports = router;
