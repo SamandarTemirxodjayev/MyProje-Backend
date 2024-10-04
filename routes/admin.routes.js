@@ -8,6 +8,7 @@ router.post("/register", controller.register);
 router.post("/login", controller.login);
 router.get("/users", middleware, controller.getUsers);
 router.post("/users/:id", middleware, controller.submitUserById);
+router.post("/users", middleware, controller.createUser);
 
 router.post("/directions", middleware, controller.createDirections);
 router.get("/directions", middleware, controller.getAllDirections);

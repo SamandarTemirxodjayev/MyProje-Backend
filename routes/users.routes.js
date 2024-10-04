@@ -26,4 +26,8 @@ router.get("/working", controller.getWorking);
 router.get("/shopping-gid", middleware, controller.getShoppingGidLimited);
 router.get("/products", middleware, controller.getProducts);
 
+router.post("/subscribe/email", middleware, controller.subscribeUserByEmail);
+
+
+router.get("/statistics", middleware, controller.getStatistics);
 module.exports = router;

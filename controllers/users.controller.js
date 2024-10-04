@@ -15,6 +15,7 @@ const Subcategories = require("../models/Subcategories");
 const InnerCategory = require("../models/InnerCategory");
 const Products = require("../models/Products");
 const {modifyResponseByLang} = require("../utils/helpers");
+const Subscribes = require("../models/Subscribes");
 
 exports.register = async (req, res) => {
 	try {
@@ -600,6 +601,54 @@ exports.getProducts = async (req, res) => {
 					page > 1
 						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
 						: null,
+			},
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.subscribeUserByEmail = async (req, res) => {
+	try {
+		let email = await Subscribes.findOne({
+			email: req.body.email,
+		});
+		if (email) {
+			return res.status(400).json({
+				status: false,
+				message: "User already subscribed",
+			});
+		}
+		email = await Subscribes.create({
+			email: req.body.email,
+			user_id: req.user._id,
+		});
+		await email.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: email,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getStatistics = async (req, res) => {
+	try {
+		const brands = await Brands.countDocuments();
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: {
+				brands,
 			},
 		});
 	} catch (error) {

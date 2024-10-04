@@ -147,6 +147,30 @@ exports.submitUserById = async (req, res) => {
 		});
 	}
 };
+exports.createUser = async (req, res) => {
+	try {
+		const {name, surname, password, phone_number, is_submit} = req.body;
+		const user = await Users.create({
+			name,
+			surname,
+			phone_number,
+			is_submit,
+		});
+		user.password = await createHash(password);
+		await user.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: user,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.createDirections = async (req, res) => {
 	try {
 		const directions = await Directions.create(req.body);

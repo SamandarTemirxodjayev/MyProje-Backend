@@ -95,6 +95,10 @@ const productsSchema = new Schema(
 					type: String,
 					required: true,
 				},
+				photo_url: {
+					type: String,
+					required: true,
+				},
 				id: {
 					type: String,
 					required: true,
@@ -180,6 +184,24 @@ const productsSchema = new Schema(
 			type: Number,
 			default: 1,
 		},
+		comments: [
+			{
+				user: {
+					type: Number,
+					ref: "users",
+				},
+				star: {
+					type: Number,
+				},
+				text: {
+					type: String,
+				},
+				createdAt: {
+					type: Number,
+					default: new Date(),
+				},
+			},
+		],
 		status: {
 			type: Boolean,
 			default: false,
