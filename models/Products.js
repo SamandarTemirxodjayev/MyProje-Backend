@@ -28,6 +28,10 @@ const productsSchema = new Schema(
 					type: String,
 					required: true,
 				},
+				color: {
+					type: String,
+					required: true,
+				},
 			},
 		],
 		files: [
