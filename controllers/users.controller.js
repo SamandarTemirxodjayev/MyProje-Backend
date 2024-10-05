@@ -16,6 +16,7 @@ const InnerCategory = require("../models/InnerCategory");
 const Products = require("../models/Products");
 const {modifyResponseByLang} = require("../utils/helpers");
 const Subscribes = require("../models/Subscribes");
+const Inspiration = require("../models/Inspiration");
 
 exports.register = async (req, res) => {
 	try {
@@ -562,15 +563,23 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 };
 exports.getProducts = async (req, res) => {
 	try {
-		let {page = 1, limit = 10, filter = {}} = req.query;
+		let {page = 1, limit = 10, filter = {}, sort, order} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
 		let query = {};
 
-		const products = await Products.find({...filter})
-			.find(query)
+		const sortOrder = order === "desc" ? -1 : 1;
+
+		// Check if sorting is requested
+		let productQuery = Products.find({...filter}).find(query);
+
+		if (sort) {
+			productQuery = productQuery.sort({[sort]: sortOrder});
+		}
+
+		const products = await productQuery
 			.skip(skip)
 			.limit(limit)
 			.populate("category")
@@ -611,6 +620,59 @@ exports.getProducts = async (req, res) => {
 		});
 	}
 };
+exports.getinspirations = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, filter = {}} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		// Build the query with the filter
+		let query = {...filter};
+
+		// Query the Inspiration model
+		let productQuery = Inspiration.find(query).skip(skip).limit(limit);
+
+		// Execute the query
+		const products = await productQuery;
+
+		// Get the total number of documents
+		const total = await Inspiration.countDocuments(query);
+
+		// Calculate the total number of pages
+		const totalPages = Math.ceil(total / limit);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: products,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
+						: null,
+			},
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+
 exports.subscribeUserByEmail = async (req, res) => {
 	try {
 		let email = await Subscribes.findOne({

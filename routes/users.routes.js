@@ -25,6 +25,7 @@ router.get("/usage-rules", middleware, controller.getUsage);
 router.get("/working", controller.getWorking);
 router.get("/shopping-gid", middleware, controller.getShoppingGidLimited);
 router.get("/products", middleware, controller.getProducts);
+router.get("/inspirations", middleware, controller.getinspirations);
 
 router.post("/subscribe/email", middleware, controller.subscribeUserByEmail);
 

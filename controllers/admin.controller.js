@@ -15,6 +15,7 @@ const ShoppingGid = require("../models/ShoppingGid");
 const Subcategories = require("../models/Subcategories");
 const Products = require("../models/Products");
 const {modifyResponseByLang} = require("../utils/helpers");
+const Inspiration = require("../models/Inspiration");
 
 exports.register = async (req, res) => {
 	try {
@@ -1395,3 +1396,113 @@ exports.createProducts = async (req, res) => {
 // 		});
 // 	}
 // };
+exports.createInspiration = async (req, res) => {
+	try {
+		const inspiration = await Inspiration.create(req.body);
+		await inspiration.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: inspiration,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllInspirations = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let inspiration = await Inspiration.find();
+		inspiration = modifyResponseByLang(inspiration, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: inspiration,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getInspirationById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let inspiration = await Inspiration.findById(req.params.id);
+		if (!inspiration) {
+			return res.status(400).json({
+				status: false,
+				message: "Inspiration not found",
+				data: null,
+			});
+		}
+		inspiration = modifyResponseByLang(inspiration, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: inspiration,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateInspirationById = async (req, res) => {
+	try {
+		const inspiration = await Inspiration.findByIdAndUpdate(
+			req.params.id,
+			req.body,
+			{new: true},
+		);
+		if (!inspiration) {
+			return res.status(400).json({
+				status: false,
+				message: "inspiration not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: inspiration,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteInspirationById = async (req, res) => {
+	try {
+		const inspiration = await Inspiration.findByIdAndDelete(req.params.id);
+		if (!inspiration) {
+			return res.status(400).json({
+				status: false,
+				message: "inspiration not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: inspiration,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
