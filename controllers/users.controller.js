@@ -563,7 +563,7 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 };
 exports.getProducts = async (req, res) => {
 	try {
-		let {page = 1, limit = 10, filter = {}, sort, order} = req.query;
+		let {page = 1, limit = 10, filter = {}, sort, order, lang} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
@@ -579,7 +579,7 @@ exports.getProducts = async (req, res) => {
 			productQuery = productQuery.sort({[sort]: sortOrder});
 		}
 
-		const products = await productQuery
+		let products = await productQuery
 			.skip(skip)
 			.limit(limit)
 			.populate("category")
@@ -590,6 +590,14 @@ exports.getProducts = async (req, res) => {
 		const total = await Products.countDocuments(query);
 
 		const totalPages = Math.ceil(total / limit);
+		products = modifyResponseByLang(products, lang, [
+			"name",
+			"information",
+			"description",
+			"intercategory.name",
+			"subcategory.name",
+			"category.name",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
