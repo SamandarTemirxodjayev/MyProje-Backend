@@ -375,6 +375,24 @@ exports.getCategories = async (req, res) => {
 		});
 	}
 };
+exports.getCategoryById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let category = await Category.findById(req.params.id);
+		category = modifyResponseByLang(category, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: category,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getSubcategoriesByCategoryId = async (req, res) => {
 	try {
 		const {lang} = req.query;
