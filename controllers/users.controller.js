@@ -375,6 +375,53 @@ exports.getCategories = async (req, res) => {
 		});
 	}
 };
+exports.getSubcategoriesByCategoryId = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let {page = 1, limit = 10} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		let categories = await Subcategories.find({
+			category: req.params.id,
+		})
+			.skip(skip)
+			.limit(limit);
+		const total = await Subcategories.countDocuments({
+			category: req.params.id,
+		});
+		const totalPages = Math.ceil(total / limit);
+		categories = modifyResponseByLang(categories, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: categories,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
+						: null,
+			},
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getBrands = async (req, res) => {
 	try {
 		let {page = 1, limit = 10, category, filter = {}} = req.query;
@@ -555,6 +602,53 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 		});
 	} catch (error) {
 		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getinnercategoriesBySubcategoryid = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let {page = 1, limit = 10} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		let categories = await InnerCategory.find({
+			subcategory: req.params.id,
+		})
+			.skip(skip)
+			.limit(limit);
+		const total = await InnerCategory.countDocuments({
+			subcategory: req.params.id,
+		});
+		const totalPages = Math.ceil(total / limit);
+		categories = modifyResponseByLang(categories, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: categories,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
+						: null,
+			},
+		});
+	} catch (error) {
+		console.log(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,
