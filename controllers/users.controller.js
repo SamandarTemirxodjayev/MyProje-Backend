@@ -334,6 +334,24 @@ exports.getSubCategories = async (req, res) => {
 		});
 	}
 };
+exports.getSubCategoriesById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let subcategory = await Subcategories.findById(req.params.id);
+		subcategory = modifyResponseByLang(subcategory, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: subcategory,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getCategories = async (req, res) => {
 	try {
 		const {lang} = req.query;
