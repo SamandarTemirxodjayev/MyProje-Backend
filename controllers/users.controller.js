@@ -737,37 +737,36 @@ exports.getinnercategoriesBySubcategoryid = async (req, res) => {
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
-		// Fetch inner categories by subcategory ID
 		let categories = await InnerCategory.find({
 			subcategory: req.params.id,
 		})
 			.skip(skip)
 			.limit(limit);
 
-		// Count total number of inner categories
 		const total = await InnerCategory.countDocuments({
 			subcategory: req.params.id,
 		});
 
-		// Calculate total pages
 		const totalPages = Math.ceil(total / limit);
 
-		// For each innercategory, count products related to intercategory._id
 		for (let i = 0; i < categories.length; i++) {
 			const intercategoryId = categories[i]._id;
+
 			const productCount = await Products.countDocuments({
 				intercategory: intercategoryId,
 			});
 
-			// Add quantity key to each category with the count of products
-			categories[i] = categories[i].toObject(); // Convert Mongoose document to plain object
+			const subcategory = await Subcategories.findById(
+				categories[i].subcategory,
+			);
+
+			categories[i] = categories[i].toObject();
 			categories[i].quantity = productCount;
+			categories[i].category = subcategory.category;
 		}
 
-		// Modify response for the correct language
 		categories = modifyResponseByLang(categories, lang, ["name"]);
 
-		// Return the response
 		return res.json({
 			status: true,
 			message: "success",
