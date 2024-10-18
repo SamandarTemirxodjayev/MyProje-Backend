@@ -396,12 +396,34 @@ exports.getCategories = async (req, res) => {
 exports.getCategoryById = async (req, res) => {
 	try {
 		const {lang} = req.query;
+
+		// Find category by ID
 		let category = await Category.findById(req.params.id);
+		if (!category) {
+			return res.status(404).json({
+				status: false,
+				message: "Category not found",
+			});
+		}
+
+		// Count the number of products associated with this category
+		const productCount = await Products.countDocuments({
+			category: req.params.id,
+		});
+
+		// Modify response by language
 		category = modifyResponseByLang(category, lang, ["name"]);
+
+		// Add quantity key
+		const categoryWithQuantity = {
+			...category,
+			quantity: productCount, // Adding the count of products
+		};
+
 		return res.json({
 			status: true,
 			message: "success",
-			data: category,
+			data: categoryWithQuantity,
 		});
 	} catch (error) {
 		console.log(error);
@@ -411,6 +433,7 @@ exports.getCategoryById = async (req, res) => {
 		});
 	}
 };
+
 exports.getSubcategoriesByCategoryId = async (req, res) => {
 	try {
 		const {lang} = req.query;
