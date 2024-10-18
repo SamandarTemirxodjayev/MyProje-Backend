@@ -22,6 +22,11 @@ router.get(
 router.get("/subcategories", middleware, controller.getSubCategories);
 router.get("/subcategory/:id", middleware, controller.getSubCategoriesById);
 router.get(
+	"/innercategory/:id",
+	middleware,
+	controller.getInnerCategoryById,
+);
+router.get(
 	"/innercategories/:categoryId",
 	middleware,
 	controller.getSubcategoriesWithInnerCategories,

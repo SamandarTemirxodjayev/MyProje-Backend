@@ -338,11 +338,54 @@ exports.getSubCategoriesById = async (req, res) => {
 	try {
 		const {lang} = req.query;
 		let subcategory = await Subcategories.findById(req.params.id);
+		const productCount = await Products.countDocuments({
+			subcategory: req.params.id,
+		});
 		subcategory = modifyResponseByLang(subcategory, lang, ["name"]);
+		const categoryWithQuantity = {
+			...subcategory,
+			quantity: productCount,
+		};
 		return res.json({
 			status: true,
 			message: "success",
-			data: subcategory,
+			data: categoryWithQuantity,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getInnerCategoryById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+
+		let innercategory = await InnerCategory.findById(req.params.id);
+		if (!innercategory) {
+			return res.status(404).json({
+				status: false,
+				message: "innercategory not found",
+			});
+		}
+
+		const productCount = await Products.countDocuments({
+			intercategory: req.params.id,
+		});
+
+		innercategory = modifyResponseByLang(innercategory, lang, ["name"]);
+
+		const categoryWithQuantity = {
+			...innercategory,
+			quantity: productCount,
+		};
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: categoryWithQuantity,
 		});
 	} catch (error) {
 		console.log(error);
@@ -397,7 +440,6 @@ exports.getCategoryById = async (req, res) => {
 	try {
 		const {lang} = req.query;
 
-		// Find category by ID
 		let category = await Category.findById(req.params.id);
 		if (!category) {
 			return res.status(404).json({
@@ -406,18 +448,15 @@ exports.getCategoryById = async (req, res) => {
 			});
 		}
 
-		// Count the number of products associated with this category
 		const productCount = await Products.countDocuments({
 			category: req.params.id,
 		});
 
-		// Modify response by language
 		category = modifyResponseByLang(category, lang, ["name"]);
 
-		// Add quantity key
 		const categoryWithQuantity = {
 			...category,
-			quantity: productCount, // Adding the count of products
+			quantity: productCount,
 		};
 
 		return res.json({
