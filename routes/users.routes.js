@@ -37,6 +37,7 @@ router.get(
 	controller.getinnercategoriesBySubcategoryid,
 );
 router.get("/brands", middleware, controller.getBrands);
+router.get("/brand/:id", middleware, controller.getBrandById);
 router.get("/links", middleware, controller.getLinks);
 router.get("/usage-rules", middleware, controller.getUsage);
 router.get("/working", controller.getWorking);

@@ -545,7 +545,7 @@ exports.getSubcategoriesByCategoryId = async (req, res) => {
 
 exports.getBrands = async (req, res) => {
 	try {
-		let {page = 1, limit = 10, category, filter = {}} = req.query;
+		let {page = 1, limit = 10, category, filter = {}, lang} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
@@ -559,7 +559,7 @@ exports.getBrands = async (req, res) => {
 			};
 		}
 
-		const brands = await Brands.find({...filter})
+		let brands = await Brands.find({...filter})
 			.find(query)
 			.skip(skip)
 			.limit(limit);
@@ -567,6 +567,10 @@ exports.getBrands = async (req, res) => {
 		const total = await Brands.countDocuments(query);
 
 		const totalPages = Math.ceil(total / limit);
+		brands = modifyResponseByLang(brands, lang, [
+			"description.history",
+			"category.name",
+		]);
 		return res.json({
 			status: true,
 			message: "success",
@@ -592,6 +596,34 @@ exports.getBrands = async (req, res) => {
 						  }`
 						: null,
 			},
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getBrandById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let brand = await Brands.findById(req.params.id).populate("category");
+		if (!brand) {
+			return res.status(400).json({
+				status: false,
+				message: "brand not found",
+				data: null,
+			});
+		}
+		brand = modifyResponseByLang(brand, lang, [
+			"description.history",
+			"category.name",
+		]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: brand,
 		});
 	} catch (error) {
 		console.log(error);
