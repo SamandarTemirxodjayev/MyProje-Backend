@@ -53,6 +53,23 @@ const brandsSchema = new Schema(
 				ref: "category",
 			},
 		],
+		solutions: [
+			{
+				photo_url: {
+					type: String,
+				},
+				title_uz: {
+					type: String,
+				},
+				title_ru: {
+					type: String,
+				},
+				title_en: {
+					type: String,
+				},
+				products: [{type: Number}],
+			},
+		],
 		createdAt: {
 			type: Number,
 			default: Date.now(),

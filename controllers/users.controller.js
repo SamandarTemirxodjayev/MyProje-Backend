@@ -721,6 +721,32 @@ exports.getShoppingGidLimited = async (req, res) => {
 		});
 	}
 };
+exports.getShoppingGidById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let shoppingGids = await ShoppingGid.findById(req.params.id)
+			.populate("brand")
+			.populate("products");
+		shoppingGids = modifyResponseByLang(shoppingGids, lang, [
+			"name",
+			"description",
+			"products.name",
+			"products.information",
+			"products.description",
+		]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: shoppingGids,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 	try {
 		const {lang} = req.query;

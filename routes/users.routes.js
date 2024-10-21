@@ -42,6 +42,7 @@ router.get("/links", middleware, controller.getLinks);
 router.get("/usage-rules", middleware, controller.getUsage);
 router.get("/working", controller.getWorking);
 router.get("/shopping-gid", middleware, controller.getShoppingGidLimited);
+router.get("/shopping-gid/:id", middleware, controller.getShoppingGidById);
 router.get("/products", middleware, controller.getProducts);
 router.get("/inspirations", middleware, controller.getinspirations);
 
