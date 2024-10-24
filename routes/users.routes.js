@@ -45,6 +45,7 @@ router.get("/shopping-gid", middleware, controller.getShoppingGidLimited);
 router.get("/shopping-gid/:id", middleware, controller.getShoppingGidById);
 router.get("/products", middleware, controller.getProducts);
 router.get("/inspirations", middleware, controller.getinspirations);
+router.get("/inspiration/:id", middleware, controller.getinspirationById);
 
 router.post("/subscribe/email", middleware, controller.subscribeUserByEmail);
 

@@ -737,7 +737,10 @@ exports.getShoppingGidById = async (req, res) => {
 		return res.json({
 			status: true,
 			message: "success",
-			data: shoppingGids,
+			data: {
+				...shoppingGids,
+				quantity: shoppingGids.products.length,
+			},
 		});
 	} catch (error) {
 		console.log(error);
@@ -925,7 +928,7 @@ exports.getProducts = async (req, res) => {
 };
 exports.getinspirations = async (req, res) => {
 	try {
-		let {page = 1, limit = 10, filter = {}} = req.query;
+		let {page = 1, limit = 10, filter = {}, lang} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
@@ -937,13 +940,18 @@ exports.getinspirations = async (req, res) => {
 		let productQuery = Inspiration.find(query).skip(skip).limit(limit);
 
 		// Execute the query
-		const products = await productQuery;
+		let products = await productQuery;
 
 		// Get the total number of documents
 		const total = await Inspiration.countDocuments(query);
 
 		// Calculate the total number of pages
 		const totalPages = Math.ceil(total / limit);
+
+		products = modifyResponseByLang(products, lang, [
+			"description.text",
+			"title",
+		]);
 
 		return res.json({
 			status: true,
@@ -966,6 +974,42 @@ exports.getinspirations = async (req, res) => {
 						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
 						: null,
 			},
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getinspirationById = async (req, res) => {
+	try {
+		let {lang} = req.query;
+
+		let inspiration = await Inspiration.findById(req.params.id).populate(
+			"products",
+		);
+
+		if (!inspiration) {
+			return res.status(404).json({
+				status: false,
+				message: "Inspiration not found",
+			});
+		}
+
+		inspiration = modifyResponseByLang(inspiration, lang, [
+			"description.text",
+			"title",
+			"products.name",
+			"products.information",
+			"products.description",
+		]);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: inspiration,
 		});
 	} catch (error) {
 		console.error(error);
