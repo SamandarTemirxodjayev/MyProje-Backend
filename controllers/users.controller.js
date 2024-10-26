@@ -884,7 +884,8 @@ exports.getProducts = async (req, res) => {
 			.populate("category")
 			.populate("subcategory")
 			.populate("intercategory")
-			.populate("brands");
+			.populate("brands")
+			.populate("solution");
 
 		const total = await Products.countDocuments(query);
 

@@ -88,10 +88,10 @@ router.delete(
 );
 
 router.post("/products", middleware, controller.createProducts);
-// router.get("/brands", middleware, controller.getAllBrands);
-// router.get("/brands/:id", middleware, controller.getBrandById);
-// router.put("/brands/:id", middleware, controller.updateBrandById);
-// router.delete("/brands/:id", middleware, controller.deleteBrandById);
+router.get("/products", middleware, controller.getAllProducts);
+router.get("/products/:id", middleware, controller.getProductById);
+router.put("/products/:id", middleware, controller.updateProductById);
+router.delete("/products/:id", middleware, controller.deleteProductById);
 
 router.post("/inspirations", middleware, controller.createInspiration);
 router.get("/inspirations", middleware, controller.getAllInspirations);

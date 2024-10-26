@@ -1290,113 +1290,152 @@ exports.createProducts = async (req, res) => {
 		});
 	}
 };
-// exports.getAllShoppingGids = async (req, res) => {
-// 	try {
-// 		const shoppingGid = await ShoppingGid.find().populate("brand");
-// 		return res.json({
-// 			status: true,
-// 			message: "success",
-// 			data: shoppingGid,
-// 		});
-// 	} catch (error) {
-// 		console.log(error);
-// 		return res.status(500).json({
-// 			status: false,
-// 			message: error.message,
-// 		});
-// // 	}
-// // };
-// exports.getActiveLimitedShoppingGids = async (req, res) => {
-// 	try {
-// 		const shoppingGid = await ShoppingGid.findActiveLimited(
-// 			req.params.limit,
-// 		).populate("brand");
-// 		return res.json({
-// 			status: true,
-// 			message: "success",
-// 			data: shoppingGid,
-// 		});
-// 	} catch (error) {
-// 		console.log(error);
-// 		return res.status(500).json({
-// 			status: false,
-// 			message: error.message,
-// 		});
-// 	}
-// };
-// exports.getShoppingGidById = async (req, res) => {
-// 	try {
-// 		const shoppingGid = await ShoppingGid.findById(req.params.id);
-// 		if (!shoppingGid) {
-// 			return res.status(400).json({
-// 				status: false,
-// 				message: "shoppingGid not found",
-// 				data: null,
-// 			});
-// 		}
-// 		return res.json({
-// 			status: true,
-// 			message: "success",
-// 			data: shoppingGid,
-// 		});
-// 	} catch (error) {
-// 		console.log(error);
-// 		return res.status(500).json({
-// 			status: false,
-// 			message: error.message,
-// 		});
-// 	}
-// };
-// exports.updateShoppingGidById = async (req, res) => {
-// 	try {
-// 		const shoppingGid = await ShoppingGid.findByIdAndUpdate(
-// 			req.params.id,
-// 			req.body,
-// 			{new: true},
-// 		);
-// 		if (!shoppingGid) {
-// 			return res.status(400).json({
-// 				status: false,
-// 				message: "shoppingGid not found",
-// 				data: null,
-// 			});
-// 		}
-// 		return res.json({
-// 			status: true,
-// 			message: "success",
-// 			data: shoppingGid,
-// 		});
-// 	} catch (error) {
-// 		console.log(error);
-// 		return res.status(500).json({
-// 			status: false,
-// 			message: error.message,
-// 		});
-// 	}
-// };
-// exports.deleteShoppingGidById = async (req, res) => {
-// 	try {
-// 		const shoppingGid = await ShoppingGid.findByIdAndDelete(req.params.id);
-// 		if (!shoppingGid) {
-// 			return res.status(400).json({
-// 				status: false,
-// 				message: "shoppingGid not found",
-// 				data: null,
-// 			});
-// 		}
-// 		return res.json({
-// 			status: true,
-// 			message: "success",
-// 			data: shoppingGid,
-// 		});
-// 	} catch (error) {
-// 		console.log(error);
-// 		return res.status(500).json({
-// 			status: false,
-// 			message: error.message,
-// 		});
-// 	}
-// };
+exports.getAllProducts = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, filter = {}, sort, order, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let query = {};
+
+		const sortOrder = order === "desc" ? -1 : 1;
+
+		// Check if sorting is requested
+		let productQuery = Products.find({...filter}).find(query);
+
+		if (sort) {
+			productQuery = productQuery.sort({[sort]: sortOrder});
+		}
+
+		let products = await productQuery
+			.skip(skip)
+			.limit(limit)
+			.populate("category")
+			.populate("subcategory")
+			.populate("intercategory")
+			.populate("brands")
+			.populate("solution");
+
+		const total = await Products.countDocuments(query);
+
+		const totalPages = Math.ceil(total / limit);
+		products = modifyResponseByLang(products, lang, [
+			"name",
+			"information",
+			"description",
+			"intercategory.name",
+			"subcategory.name",
+			"category.name",
+		]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: products,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
+						: null,
+			},
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getProductById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let product = await Products.findById(req.params.id)
+			.populate("category")
+			.populate("subcategory")
+			.populate("intercategory")
+			.populate("brands")
+			.populate("solution");
+		if (!product) {
+			return res.status(400).json({
+				status: false,
+				message: "product not found",
+				data: null,
+			});
+		}
+		product = modifyResponseByLang(product, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: product,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateProductById = async (req, res) => {
+	try {
+		const product = await Products.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!product) {
+			return res.status(400).json({
+				status: false,
+				message: "product not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: product,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteProductById = async (req, res) => {
+	try {
+		const product = await Products.findByIdAndDelete(req.params.id);
+		if (!product) {
+			return res.status(400).json({
+				status: false,
+				message: "product not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: product,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.createInspiration = async (req, res) => {
 	try {
 		const inspiration = await Inspiration.create(req.body);
