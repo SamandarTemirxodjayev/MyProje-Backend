@@ -16,6 +16,7 @@ const Subcategories = require("../models/Subcategories");
 const Products = require("../models/Products");
 const {modifyResponseByLang} = require("../utils/helpers");
 const Inspiration = require("../models/Inspiration");
+const Solutions = require("../models/Solutions");
 
 exports.register = async (req, res) => {
 	try {
@@ -1497,6 +1498,116 @@ exports.deleteInspirationById = async (req, res) => {
 			status: true,
 			message: "success",
 			data: inspiration,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createSolution = async (req, res) => {
+	try {
+		const solution = await Solutions.create(req.body);
+		await solution.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: solution,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllSolutions = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let solutions = await Solutions.find();
+		solutions = modifyResponseByLang(solutions, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: solutions,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getSolutionById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let solution = await Solutions.findById(req.params.id);
+		if (!solution) {
+			return res.status(400).json({
+				status: false,
+				message: "solution not found",
+				data: null,
+			});
+		}
+		solution = modifyResponseByLang(solution, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: solution,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateSolutionById = async (req, res) => {
+	try {
+		const solution = await Solutions.findByIdAndUpdate(
+			req.params.id,
+			req.body,
+			{new: true},
+		);
+		if (!solution) {
+			return res.status(400).json({
+				status: false,
+				message: "solution not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: solution,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteSolutionById = async (req, res) => {
+	try {
+		const solution = await Solutions.findByIdAndDelete(req.params.id);
+		if (!solution) {
+			return res.status(400).json({
+				status: false,
+				message: "solution not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: solution,
 		});
 	} catch (error) {
 		console.log(error);

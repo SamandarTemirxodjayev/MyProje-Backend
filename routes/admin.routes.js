@@ -103,4 +103,10 @@ router.delete(
 	controller.deleteInspirationById,
 );
 
+router.post("/solutions", middleware, controller.createSolution);
+router.get("/solutions", middleware, controller.getAllSolutions);
+router.get("/solutions/:id", middleware, controller.getSolutionById);
+router.put("/solutions/:id", middleware, controller.updateSolutionById);
+router.delete("/solutions/:id", middleware, controller.deleteSolutionById);
+
 module.exports = router;

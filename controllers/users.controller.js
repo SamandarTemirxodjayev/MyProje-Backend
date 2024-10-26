@@ -17,6 +17,7 @@ const Products = require("../models/Products");
 const {modifyResponseByLang} = require("../utils/helpers");
 const Subscribes = require("../models/Subscribes");
 const Inspiration = require("../models/Inspiration");
+const Solutions = require("../models/Solutions");
 
 exports.register = async (req, res) => {
 	try {
@@ -952,6 +953,63 @@ exports.getinspirations = async (req, res) => {
 			"description.text",
 			"title",
 		]);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: products,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
+						: null,
+			},
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getSolutions = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, filter = {}, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		// Build the query with the filter
+		let query = {...filter};
+
+		// Query the Inspiration model
+		let productQuery = Solutions.find(query)
+			.skip(skip)
+			.limit(limit)
+			.populate("brand");
+
+		// Execute the query
+		let products = await productQuery;
+
+		// Get the total number of documents
+		const total = await Solutions.countDocuments(query);
+
+		// Calculate the total number of pages
+		const totalPages = Math.ceil(total / limit);
+
+		products = modifyResponseByLang(products, lang, ["name"]);
 
 		return res.json({
 			status: true,

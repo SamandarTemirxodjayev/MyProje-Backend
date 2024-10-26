@@ -170,6 +170,11 @@ const productsSchema = new Schema(
 			ref: "brands",
 			required: true,
 		},
+		solution: {
+			type: Number,
+			ref: "solutions",
+			required: true,
+		},
 		delivery: {
 			day: {
 				type: Number,
