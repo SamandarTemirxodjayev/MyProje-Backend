@@ -173,6 +173,22 @@ exports.createUser = async (req, res) => {
 		});
 	}
 };
+exports.getMe = async (req, res) => {
+	try {
+		const {password, ...results} = req.admin._doc;
+		return res.json({
+			status: true,
+			message: "success",
+			data: results,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.createDirections = async (req, res) => {
 	try {
 		const directions = await Directions.create(req.body);
