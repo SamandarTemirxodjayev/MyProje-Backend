@@ -25,12 +25,14 @@ router.delete("/advantages/:id", middleware, controller.deleteAdvantagesById);
 
 router.post("/categories", middleware, controller.createCategory);
 router.get("/categories", middleware, controller.getAllCategories);
+router.get("/categories/search", middleware, controller.searchCategories);
 router.get("/categories/:id", middleware, controller.getCategoryById);
 router.put("/categories/:id", middleware, controller.updateCategoryById);
 router.delete("/categories/:id", middleware, controller.deleteCategoryById);
 
 router.post("/subcategories", middleware, controller.createSubCategory);
 router.get("/subcategories", middleware, controller.getAllSubCategories);
+router.get("/subcategories/search", middleware, controller.searchSubcategories);
 router.get("/subcategories/:id", middleware, controller.getSubCategoryById);
 router.put("/subcategories/:id", middleware, controller.updateSubCategoryById);
 router.delete(
@@ -41,6 +43,11 @@ router.delete(
 
 router.post("/innercategories", middleware, controller.createInnerCategory);
 router.get("/innercategories", middleware, controller.getAllInnerCategories);
+router.get(
+	"/innercategories/search",
+	middleware,
+	controller.searchinnercategories,
+);
 router.get("/innercategory/:id", middleware, controller.getInnerCategoryById);
 router.get(
 	"/innercategories/:id",

@@ -14,7 +14,7 @@ const InnerCategory = require("../models/InnerCategory");
 const ShoppingGid = require("../models/ShoppingGid");
 const Subcategories = require("../models/Subcategories");
 const Products = require("../models/Products");
-const {modifyResponseByLang} = require("../utils/helpers");
+const {modifyResponseByLang, paginate} = require("../utils/helpers");
 const Inspiration = require("../models/Inspiration");
 const Solutions = require("../models/Solutions");
 
@@ -429,24 +429,51 @@ exports.createCategory = async (req, res) => {
 		});
 	}
 };
+
 exports.getAllCategories = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let categories = await Category.find();
-		categories = modifyResponseByLang(categories, lang, ["name"]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: categories,
-		});
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let categories = await Category.find().skip(skip).limit(limit);
+		const total = await Category.countDocuments();
+
+		const categoriesWithQuantity = await Promise.all(
+			categories.map(async (category) => {
+				const productCount = await Products.countDocuments({
+					category: category._id,
+				});
+				return {...category.toObject(), quantity: productCount};
+			}),
+		);
+
+		const modifiedCategories = modifyResponseByLang(
+			categoriesWithQuantity,
+			lang,
+			["name"],
+		);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			modifiedCategories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,
 		});
 	}
 };
+
 exports.getCategoryById = async (req, res) => {
 	try {
 		const {lang} = req.query;
@@ -472,6 +499,63 @@ exports.getCategoryById = async (req, res) => {
 		});
 	}
 };
+exports.searchCategories = async (req, res) => {
+	try {
+		const {query, lang} = req.query;
+
+		if (!query) {
+			return res.status(400).json({
+				status: false,
+				message: "Search query is required",
+			});
+		}
+
+		const searchCriteria = {
+			$or: [
+				{name_uz: {$regex: query, $options: "i"}},
+				{name_ru: {$regex: query, $options: "i"}},
+				{name_en: {$regex: query, $options: "i"}},
+			],
+		};
+
+		let categories = await Category.aggregate([
+			{$match: searchCriteria},
+			{
+				$lookup: {
+					from: "products",
+					localField: "_id",
+					foreignField: "category",
+					as: "products",
+				},
+			},
+			{
+				$addFields: {
+					quantity: {$size: "$products"},
+				},
+			},
+			{
+				$project: {
+					products: 0,
+				},
+			},
+		]);
+
+		categories = modifyResponseByLang(categories, lang, ["name"]);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: categories,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+
 exports.updateCategoryById = async (req, res) => {
 	try {
 		const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
@@ -539,17 +623,39 @@ exports.createSubCategory = async (req, res) => {
 };
 exports.getAllSubCategories = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let subcategory = await Subcategories.find().populate("category");
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let subcategory = await Subcategories.find()
+			.skip(skip)
+			.limit(limit)
+			.populate("category");
+		const total = await Subcategories.countDocuments();
+
+		subcategory = await Promise.all(
+			subcategory.map(async (subcategory) => {
+				const productCount = await Products.countDocuments({
+					subcategory: subcategory._id,
+				});
+				return {...subcategory.toObject(), quantity: productCount};
+			}),
+		);
 		subcategory = modifyResponseByLang(subcategory, lang, [
 			"category.name",
 			"name",
 		]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: subcategory,
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			subcategory,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -592,7 +698,62 @@ exports.getSubCategoryById = async (req, res) => {
 		});
 	}
 };
+exports.searchSubcategories = async (req, res) => {
+	try {
+		const {query, lang} = req.query;
 
+		if (!query) {
+			return res.status(400).json({
+				status: false,
+				message: "Search query is required",
+			});
+		}
+
+		const searchCriteria = {
+			$or: [
+				{name_uz: {$regex: query, $options: "i"}},
+				{name_ru: {$regex: query, $options: "i"}},
+				{name_en: {$regex: query, $options: "i"}},
+			],
+		};
+
+		let categories = await Subcategories.aggregate([
+			{$match: searchCriteria},
+			{
+				$lookup: {
+					from: "products",
+					localField: "_id",
+					foreignField: "subcategory",
+					as: "products",
+				},
+			},
+			{
+				$addFields: {
+					quantity: {$size: "$products"},
+				},
+			},
+			{
+				$project: {
+					products: 0,
+				},
+			},
+		]);
+
+		categories = modifyResponseByLang(categories, lang, ["name"]);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: categories,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.updateSubCategoryById = async (req, res) => {
 	try {
 		const subcategory = await Subcategories.findByIdAndUpdate(
@@ -664,17 +825,39 @@ exports.createInnerCategory = async (req, res) => {
 };
 exports.getAllInnerCategories = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let innercategory = await InnerCategory.find().populate("subcategory");
-		innercategory = modifyResponseByLang(innercategory, lang, [
-			"name",
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let innercategories = await InnerCategory.find()
+			.skip(skip)
+			.limit(limit)
+			.populate("subcategory");
+		const total = await InnerCategory.countDocuments();
+
+		innercategories = await Promise.all(
+			innercategories.map(async (innercategory) => {
+				const productCount = await Products.countDocuments({
+					intercategory: innercategory._id,
+				});
+				return {...innercategory.toObject(), quantity: productCount};
+			}),
+		);
+		innercategories = modifyResponseByLang(innercategories, lang, [
 			"subcategory.name",
+			"name",
 		]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: innercategory,
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			innercategories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -707,6 +890,62 @@ exports.getInnerCategoryById = async (req, res) => {
 		});
 	} catch (error) {
 		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.searchinnercategories = async (req, res) => {
+	try {
+		const {query, lang} = req.query;
+
+		if (!query) {
+			return res.status(400).json({
+				status: false,
+				message: "Search query is required",
+			});
+		}
+
+		const searchCriteria = {
+			$or: [
+				{name_uz: {$regex: query, $options: "i"}},
+				{name_ru: {$regex: query, $options: "i"}},
+				{name_en: {$regex: query, $options: "i"}},
+			],
+		};
+
+		let categories = await InnerCategory.aggregate([
+			{$match: searchCriteria},
+			{
+				$lookup: {
+					from: "products",
+					localField: "_id",
+					foreignField: "intercategory",
+					as: "products",
+				},
+			},
+			{
+				$addFields: {
+					quantity: {$size: "$products"},
+				},
+			},
+			{
+				$project: {
+					products: 0,
+				},
+			},
+		]);
+
+		categories = modifyResponseByLang(categories, lang, ["name"]);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: categories,
+		});
+	} catch (error) {
+		console.error(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,

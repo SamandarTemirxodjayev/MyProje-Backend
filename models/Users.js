@@ -15,7 +15,6 @@ const usersSchema = new Schema(
 		},
 		email: {
 			type: String,
-			// required: true,
 			unique: true,
 		},
 		phone_number: {
@@ -25,7 +24,6 @@ const usersSchema = new Schema(
 		},
 		resume_url: {
 			type: String,
-			// required: true,
 		},
 		gender: {
 			type: String,

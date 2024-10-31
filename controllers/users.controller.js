@@ -18,6 +18,7 @@ const {modifyResponseByLang} = require("../utils/helpers");
 const Subscribes = require("../models/Subscribes");
 const Inspiration = require("../models/Inspiration");
 const Solutions = require("../models/Solutions");
+const LikedProducts = require("../models/LikedProducts");
 
 exports.register = async (req, res) => {
 	try {
@@ -867,37 +868,53 @@ exports.getProducts = async (req, res) => {
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
-		let query = {};
-
 		const sortOrder = order === "desc" ? -1 : 1;
 
-		// Check if sorting is requested
-		let productQuery = Products.find({...filter}).find(query);
+		// Query products with filter and pagination
+		let productQuery = Products.find({...filter})
+			.skip(skip)
+			.limit(limit);
 
 		if (sort) {
 			productQuery = productQuery.sort({[sort]: sortOrder});
 		}
 
-		let products = await productQuery
-			.skip(skip)
-			.limit(limit)
+		productQuery
 			.populate("category")
 			.populate("subcategory")
 			.populate("intercategory")
 			.populate("brands")
 			.populate("solution");
 
-		const total = await Products.countDocuments(query);
+		// Fetch liked product IDs for the user
+		const likedProducts = await LikedProducts.find({
+			user_id: req.user._id,
+		}).select("product_id");
+		const likedProductIds = likedProducts.map((like) => like.product_id);
 
+		// Execute product query
+		let products = await productQuery;
+
+		// Modify products with language and liked status
+		products = products.map((product) => {
+			const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
+				"name",
+				"information",
+				"description",
+				"intercategory.name",
+				"subcategory.name",
+				"category.name",
+			]);
+
+			// Add `liked: true` if product is in liked products, otherwise `liked: false`
+			modifiedProduct.liked = likedProductIds.includes(product._id);
+
+			return modifiedProduct;
+		});
+
+		const total = await Products.countDocuments(filter);
 		const totalPages = Math.ceil(total / limit);
-		products = modifyResponseByLang(products, lang, [
-			"name",
-			"information",
-			"description",
-			"intercategory.name",
-			"subcategory.name",
-			"category.name",
-		]);
+
 		return res.json({
 			status: true,
 			message: "success",
@@ -920,6 +937,142 @@ exports.getProducts = async (req, res) => {
 						: null,
 			},
 		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getLikedProducts = async (req, res) => {
+	try {
+		// Extract query parameters
+		let {page = 1, limit = 10, filter = {}, sort, order, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		const sortOrder = order === "desc" ? -1 : 1;
+
+		// Get liked products by user_id and retrieve only product_id field
+		const likedProductIds = await LikedProducts.find({
+			user_id: req.user._id,
+		}).select("product_id");
+		const productIds = likedProductIds.map((like) => like.product_id);
+
+		// Fetch products by productIds with filtering, sorting, and pagination
+		let productQuery = Products.find({...filter, _id: {$in: productIds}});
+
+		// Apply sorting if specified
+		if (sort) {
+			productQuery = productQuery.sort({[sort]: sortOrder});
+		}
+
+		// Apply pagination
+		productQuery = productQuery.skip(skip).limit(limit);
+
+		// Populate fields
+		productQuery
+			.populate("category")
+			.populate("subcategory")
+			.populate("intercategory")
+			.populate("brands")
+			.populate("solution");
+
+		// Execute query and fetch products
+		let products = await productQuery;
+
+		// Modify each product for language and add `liked: true`
+		products = products.map((product) => {
+			const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
+				"name",
+				"information",
+				"description",
+				"intercategory.name",
+				"subcategory.name",
+				"category.name",
+			]);
+			modifiedProduct.liked = true;
+			return modifiedProduct;
+		});
+
+		// Get total liked products for pagination
+		const total = await Products.countDocuments({
+			_id: {$in: productIds},
+			...filter,
+		});
+		const totalPages = Math.ceil(total / limit);
+
+		// Return the response with pagination and links
+		return res.json({
+			status: true,
+			message: "success",
+			data: products,
+			_meta: {
+				totalItems: total,
+				currentPage: page,
+				itemsPerPage: limit,
+				totalPages: totalPages,
+			},
+			_links: {
+				self: req.originalUrl,
+				next:
+					page < totalPages
+						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
+						: null,
+				prev:
+					page > 1
+						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
+						: null,
+			},
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+
+exports.toggleProductsLike = async (req, res) => {
+	try {
+		const product = await Products.findById(req.body.product_id);
+		if (!product) {
+			return res.status(404).json({
+				status: false,
+				message: "Product not found",
+				data: null,
+			});
+		}
+		let likedProduct = await LikedProducts.findOne({
+			user_id: req.user._id,
+			product_id: product._id,
+		});
+		if (!likedProduct) {
+			likedProduct = await LikedProducts.create({
+				user_id: req.user._id,
+				product_id: product._id,
+			});
+			return res.json({
+				status: true,
+				message: "product liked successfully",
+				data: {
+					liked: true,
+					...likedProduct._doc,
+				},
+			});
+		} else {
+			await likedProduct.deleteOne();
+			return res.json({
+				status: true,
+				message: "product unliked successfully",
+				data: {
+					liked: false,
+					...likedProduct._doc,
+				},
+			});
+		}
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
