@@ -501,9 +501,9 @@ exports.getCategoryById = async (req, res) => {
 };
 exports.searchCategories = async (req, res) => {
 	try {
-		const {query, lang} = req.query;
+		const {text, lang} = req.query;
 
-		if (!query) {
+		if (!text) {
 			return res.status(400).json({
 				status: false,
 				message: "Search query is required",
@@ -512,9 +512,9 @@ exports.searchCategories = async (req, res) => {
 
 		const searchCriteria = {
 			$or: [
-				{name_uz: {$regex: query, $options: "i"}},
-				{name_ru: {$regex: query, $options: "i"}},
-				{name_en: {$regex: query, $options: "i"}},
+				{name_uz: {$regex: text, $options: "i"}},
+				{name_ru: {$regex: text, $options: "i"}},
+				{name_en: {$regex: text, $options: "i"}},
 			],
 		};
 
@@ -700,9 +700,9 @@ exports.getSubCategoryById = async (req, res) => {
 };
 exports.searchSubcategories = async (req, res) => {
 	try {
-		const {query, lang} = req.query;
+		const {text, lang} = req.query;
 
-		if (!query) {
+		if (!text) {
 			return res.status(400).json({
 				status: false,
 				message: "Search query is required",
@@ -711,9 +711,9 @@ exports.searchSubcategories = async (req, res) => {
 
 		const searchCriteria = {
 			$or: [
-				{name_uz: {$regex: query, $options: "i"}},
-				{name_ru: {$regex: query, $options: "i"}},
-				{name_en: {$regex: query, $options: "i"}},
+				{name_uz: {$regex: text, $options: "i"}},
+				{name_ru: {$regex: text, $options: "i"}},
+				{name_en: {$regex: text, $options: "i"}},
 			],
 		};
 
@@ -898,9 +898,9 @@ exports.getInnerCategoryById = async (req, res) => {
 };
 exports.searchinnercategories = async (req, res) => {
 	try {
-		const {query, lang} = req.query;
+		const {text, lang} = req.query;
 
-		if (!query) {
+		if (!text) {
 			return res.status(400).json({
 				status: false,
 				message: "Search query is required",
@@ -909,9 +909,9 @@ exports.searchinnercategories = async (req, res) => {
 
 		const searchCriteria = {
 			$or: [
-				{name_uz: {$regex: query, $options: "i"}},
-				{name_ru: {$regex: query, $options: "i"}},
-				{name_en: {$regex: query, $options: "i"}},
+				{name_uz: {$regex: text, $options: "i"}},
+				{name_ru: {$regex: text, $options: "i"}},
+				{name_en: {$regex: text, $options: "i"}},
 			],
 		};
 
