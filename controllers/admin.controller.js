@@ -83,25 +83,26 @@ exports.login = async (req, res) => {
 };
 exports.getUsers = async (req, res) => {
 	try {
-		let users;
-		if (req.query.status == 0) {
-			users = await Users.find({
-				is_submit: false,
-			});
-		} else if (req.query.status == 1) {
-			users = await Users.find({
-				is_submit: true,
-			});
-		} else if (req.query.status == 2) {
-			users = await Users.find();
-		} else {
-			users = [];
-		}
-		return res.json({
-			status: true,
-			message: "success",
-			data: users,
-		});
+		let {page = 1, limit = 10, filter = {}} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let categories = await Users.find({...filter})
+			.skip(skip)
+			.limit(limit);
+		const total = await Users.countDocuments({...filter});
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			categories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -110,6 +111,41 @@ exports.getUsers = async (req, res) => {
 		});
 	}
 };
+exports.searchUser = async (req, res) => {
+	try {
+		const {text} = req.query;
+
+		if (!text) {
+			return res.status(400).json({
+				status: false,
+				message: "Search query is required",
+			});
+		}
+
+		const searchCriteria = {
+			$or: [
+				{name: {$regex: text, $options: "i"}},
+				{surname: {$regex: text, $options: "i"}},
+				{phone_number: {$regex: text, $options: "i"}},
+			],
+		};
+
+		let categories = await Users.find(searchCriteria);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: categories,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+
 exports.submitUserById = async (req, res) => {
 	try {
 		const user = await Users.findById(req.params.id);
@@ -139,6 +175,22 @@ exports.submitUserById = async (req, res) => {
 		return res.json({
 			status: true,
 			message: "success",
+			data: user,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteUserById = async (req, res) => {
+	try {
+		const user = await Users.findByIdAndDelete(req.params.id);
+		return res.json({
+			status: true,
+			message: "User deleted successfully",
 			data: user,
 		});
 	} catch (error) {
