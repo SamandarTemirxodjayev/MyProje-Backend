@@ -1087,9 +1087,6 @@ exports.getAllBrands = async (req, res) => {
 			req.baseUrl,
 			req.path,
 		);
-
-		let brands = await Brands.find();
-		brands = modifyResponseByLang(brands, lang, []);
 		return res.json(response);
 	} catch (error) {
 		console.log(error);
@@ -1350,7 +1347,7 @@ exports.getIsWorking = async (req, res) => {
 		});
 	}
 };
-exports.updateLinks = async (req, res) => {
+exports.updateisWorkding = async (req, res) => {
 	const filePath = path.join(__dirname, "../database", "is-working.json");
 
 	try {
@@ -1434,17 +1431,41 @@ exports.createShoppingGid = async (req, res) => {
 };
 exports.getAllShoppingGids = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let shoppingGid = await ShoppingGid.find().populate("brand");
-		shoppingGid = modifyResponseByLang(shoppingGid, lang, [
-			"name",
-			"description",
-		]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: shoppingGid,
-		});
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let shoppingGid = await ShoppingGid.find()
+			.skip(skip)
+			.limit(limit)
+			.populate("brand");
+		const total = await ShoppingGid.countDocuments();
+
+		const categoriesWithQuantity = await Promise.all(
+			shoppingGid.map(async (category) => {
+				const productCount = await Products.countDocuments({
+					brand: category._id,
+				});
+				return {...category.toObject(), quantity: productCount};
+			}),
+		);
+
+		const modifiedCategories = modifyResponseByLang(
+			categoriesWithQuantity,
+			lang,
+			["name", "description"],
+		);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			modifiedCategories,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -1847,14 +1868,38 @@ exports.createSolution = async (req, res) => {
 };
 exports.getAllSolutions = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let solutions = await Solutions.find();
-		solutions = modifyResponseByLang(solutions, lang, ["name"]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: solutions,
-		});
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let solutions = await Solutions.find().skip(skip).limit(limit);
+		const total = await Solutions.countDocuments();
+
+		const categoriesWithQuantity = await Promise.all(
+			solutions.map(async (category) => {
+				const productCount = await Products.countDocuments({
+					brand: category._id,
+				});
+				return {...category.toObject(), quantity: productCount};
+			}),
+		);
+
+		const modifiedCategories = modifyResponseByLang(
+			categoriesWithQuantity,
+			lang,
+			["name"],
+		);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			modifiedCategories,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({

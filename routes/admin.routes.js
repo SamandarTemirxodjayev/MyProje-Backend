@@ -75,10 +75,10 @@ router.get("/usage-rules", middleware, controller.getUsage);
 router.post("/usage-rules", middleware, controller.updateUsage);
 
 router.get("/links", middleware, controller.getLinks);
-router.post("/links", middleware, controller.updateLinks);
+router.put("/links", middleware, controller.updateLinks);
 
 router.get("/working", middleware, controller.getIsWorking);
-router.post("/working", middleware, controller.updateLinks);
+router.put("/working", middleware, controller.updateisWorkding);
 
 router.post("/shopping-gid", middleware, controller.createShoppingGid);
 router.get("/shopping-gid", middleware, controller.getAllShoppingGids);

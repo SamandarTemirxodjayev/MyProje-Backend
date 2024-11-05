@@ -1,5 +1,5 @@
 node_modules
 pnpm-lock.yaml
 log/*
-database/uz-lang.json
+database/*
 cdn/public/*
