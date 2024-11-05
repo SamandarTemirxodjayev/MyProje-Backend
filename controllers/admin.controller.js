@@ -1053,17 +1053,44 @@ exports.createBrand = async (req, res) => {
 };
 exports.getAllBrands = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let brands = await Brands.find().populate("category");
-		brands = modifyResponseByLang(brands, lang, [
-			"description.history",
-			"category.name",
-		]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: brands,
-		});
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let categories = await Brands.find()
+			.skip(skip)
+			.limit(limit)
+			.populate("category");
+		const total = await Brands.countDocuments();
+
+		const categoriesWithQuantity = await Promise.all(
+			categories.map(async (category) => {
+				const productCount = await Products.countDocuments({
+					brand: category._id,
+				});
+				return {...category.toObject(), quantity: productCount};
+			}),
+		);
+
+		const modifiedCategories = modifyResponseByLang(
+			categoriesWithQuantity,
+			lang,
+			["description.history", "category.name"],
+		);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			modifiedCategories,
+			req.baseUrl,
+			req.path,
+		);
+
+		let brands = await Brands.find();
+		brands = modifyResponseByLang(brands, lang, []);
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
