@@ -69,6 +69,7 @@ router.delete(
 
 router.post("/brands", middleware, controller.createBrand);
 router.get("/brands", middleware, controller.getAllBrands);
+router.get("/brands/search", middleware, controller.searchBrands);
 router.get("/brands/:id", middleware, controller.getBrandById);
 router.put("/brands/:id", middleware, controller.updateBrandById);
 router.delete("/brands/:id", middleware, controller.deleteBrandById);

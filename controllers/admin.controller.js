@@ -212,14 +212,12 @@ exports.deleteUserById = async (req, res) => {
 };
 exports.createUser = async (req, res) => {
 	try {
-		const {name, surname, password, phone_number, is_submit} = req.body;
+		let {password, ...result} = req.body;
+		password = await createHash(password);
 		const user = await Users.create({
-			name,
-			surname,
-			phone_number,
-			is_submit,
+			...result,
+			password,
 		});
-		user.password = await createHash(password);
 		await user.save();
 		return res.json({
 			status: true,
@@ -1151,6 +1149,45 @@ exports.getAllBrands = async (req, res) => {
 		return res.json(response);
 	} catch (error) {
 		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.searchBrands = async (req, res) => {
+	try {
+		let {text, page = 1, limit = 10} = req.query;
+
+		if (!text) {
+			return res.status(400).json({
+				status: false,
+				message: "Search query is required",
+			});
+		}
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		const searchCriteria = {
+			name: {$regex: text, $options: "i"},
+		};
+
+		let categories = await Brands.find(searchCriteria).skip(skip).limit(limit);
+		const total = await Brands.countDocuments(searchCriteria);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			categories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
+	} catch (error) {
+		console.error(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,
