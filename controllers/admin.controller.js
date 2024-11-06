@@ -113,7 +113,7 @@ exports.getUsers = async (req, res) => {
 };
 exports.searchUser = async (req, res) => {
 	try {
-		const {text} = req.query;
+		let {text, page = 1, limit = 10} = req.query;
 
 		if (!text) {
 			return res.status(400).json({
@@ -121,6 +121,9 @@ exports.searchUser = async (req, res) => {
 				message: "Search query is required",
 			});
 		}
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
 
 		const searchCriteria = {
 			$or: [
@@ -130,13 +133,19 @@ exports.searchUser = async (req, res) => {
 			],
 		};
 
-		let categories = await Users.find(searchCriteria);
+		let categories = await Users.find(searchCriteria).skip(skip).limit(limit);
+		const total = await Users.countDocuments();
 
-		return res.json({
-			status: true,
-			message: "success",
-			data: categories,
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			categories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
