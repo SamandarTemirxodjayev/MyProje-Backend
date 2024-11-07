@@ -1599,7 +1599,9 @@ exports.getActiveLimitedShoppingGids = async (req, res) => {
 exports.getShoppingGidById = async (req, res) => {
 	try {
 		const {lang} = req.query;
-		let shoppingGid = await ShoppingGid.findById(req.params.id);
+		let shoppingGid = await ShoppingGid.findById(req.params.id).populate(
+			"brand",
+		);
 		if (!shoppingGid) {
 			return res.status(400).json({
 				status: false,
