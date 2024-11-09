@@ -1646,6 +1646,57 @@ exports.getShoppingGidById = async (req, res) => {
 		});
 	}
 };
+exports.searchShoppingGids = async (req, res) => {
+	try {
+		let {text, lang, page = 1, limit = 10} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		if (!text) {
+			return res.status(400).json({
+				status: false,
+				message: "Search query is required",
+			});
+		}
+
+		const searchCriteria = {
+			$or: [
+				{name_uz: {$regex: text, $options: "i"}},
+				{name_ru: {$regex: text, $options: "i"}},
+				{name_en: {$regex: text, $options: "i"}},
+			],
+		};
+
+		let categories = await ShoppingGid.aggregate([
+			{$match: searchCriteria},
+			{$skip: skip},
+			{$limit: limit},
+		]);
+		const total = await ShoppingGid.countDocuments(searchCriteria);
+
+		categories = modifyResponseByLang(categories, lang, [
+			"name",
+			"description",
+		]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			categories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.updateShoppingGidById = async (req, res) => {
 	try {
 		const shoppingGid = await ShoppingGid.findByIdAndUpdate(

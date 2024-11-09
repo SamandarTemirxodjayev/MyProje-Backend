@@ -90,7 +90,8 @@ router.get(
 	middleware,
 	controller.getActiveLimitedShoppingGids,
 );
-router.get("/shopping-gid/:id", middleware, controller.getShoppingGidById);
+
+router.get("/shopping-gid/search", middleware, controller.searchShoppingGids);
 router.put("/shopping-gid/:id", middleware, controller.updateShoppingGidById);
 router.delete(
 	"/shopping-gid/:id",
