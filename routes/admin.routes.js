@@ -116,6 +116,7 @@ router.delete(
 
 router.post("/solutions", middleware, controller.createSolution);
 router.get("/solutions", middleware, controller.getAllSolutions);
+router.get("/solutions/search", middleware, controller.searchSolutions);
 router.get("/solutions/:id", middleware, controller.getSolutionById);
 router.put("/solutions/:id", middleware, controller.updateSolutionById);
 router.delete("/solutions/:id", middleware, controller.deleteSolutionById);
