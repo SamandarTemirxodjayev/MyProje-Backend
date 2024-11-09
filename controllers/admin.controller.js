@@ -1993,7 +1993,10 @@ exports.getAllSolutions = async (req, res) => {
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
-		let solutions = await Solutions.find().skip(skip).limit(limit);
+		let solutions = await Solutions.find()
+			.skip(skip)
+			.limit(limit)
+			.populate("brand");
 		const total = await Solutions.countDocuments();
 
 		const categoriesWithQuantity = await Promise.all(
@@ -2031,7 +2034,7 @@ exports.getAllSolutions = async (req, res) => {
 exports.getSolutionById = async (req, res) => {
 	try {
 		const {lang} = req.query;
-		let solution = await Solutions.findById(req.params.id);
+		let solution = await Solutions.findById(req.params.id).populate("brand");
 		if (!solution) {
 			return res.status(400).json({
 				status: false,
