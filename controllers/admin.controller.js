@@ -196,7 +196,24 @@ exports.submitUserById = async (req, res) => {
 		});
 	}
 };
-
+exports.editUserById = async (req, res) => {
+	try {
+		const user = await Users.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		return res.json({
+			status: true,
+			message: "success",
+			data: user,
+		});
+	} catch (error) {
+		console.error("JSON Parsing or Other Error: ", error);
+		return res.status(500).json({
+			status: false,
+			message: "Server error occurred",
+		});
+	}
+};
 exports.deleteUserById = async (req, res) => {
 	try {
 		const user = await Users.findByIdAndDelete(req.params.id);

@@ -7,8 +7,9 @@ const router = Router();
 router.post("/register", controller.register);
 router.post("/login", controller.login);
 router.get("/users", middleware, controller.getUsers);
-router.get("/users/search", middleware, controller.searchUser)
+router.get("/users/search", middleware, controller.searchUser);
 router.post("/users/:id", middleware, controller.submitUserById);
+router.post("/user/:id", middleware, controller.editUserById);
 router.delete("/users/:id", middleware, controller.deleteUserById);
 router.post("/users", middleware, controller.createUser);
 router.get("/me", middleware, controller.getMe);
