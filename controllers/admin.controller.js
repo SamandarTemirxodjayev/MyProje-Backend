@@ -172,6 +172,7 @@ exports.submitUserById = async (req, res) => {
 				data: null,
 			});
 		}
+		console.log(user);
 		const text = `${user.name}-${user._id}`;
 		user.password = await createHash(text);
 		user.is_submit = true;
@@ -181,19 +182,21 @@ exports.submitUserById = async (req, res) => {
 			`Sizning Ma'lumotlaringiz:\n\n<br> Login: ${user.phone_number}\n <br>Parol: ${text}`,
 		);
 		await user.save();
+		console.log(user);
 		return res.json({
 			status: true,
 			message: "success",
 			data: user,
 		});
 	} catch (error) {
-		console.log(error);
+		console.error("JSON Parsing or Other Error: ", error);
 		return res.status(500).json({
 			status: false,
-			message: error.message,
+			message: "Server error occurred",
 		});
 	}
 };
+
 exports.deleteUserById = async (req, res) => {
 	try {
 		const user = await Users.findByIdAndDelete(req.params.id);
