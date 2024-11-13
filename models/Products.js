@@ -160,7 +160,7 @@ const productsSchema = new Schema(
 			ref: "subcategory",
 			required: true,
 		},
-		intercategory: {
+		innercategory: {
 			type: Number,
 			ref: "intercategory",
 			required: true,
