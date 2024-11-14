@@ -918,7 +918,7 @@ exports.getAllInnerCategories = async (req, res) => {
 		innercategories = await Promise.all(
 			innercategories.map(async (innercategory) => {
 				const productCount = await Products.countDocuments({
-					intercategory: innercategory._id,
+					innercategory: innercategory._id,
 				});
 				return {...innercategory.toObject(), quantity: productCount};
 			}),
@@ -1000,7 +1000,7 @@ exports.searchinnercategories = async (req, res) => {
 				$lookup: {
 					from: "products",
 					localField: "_id",
-					foreignField: "intercategory",
+					foreignField: "innercategory",
 					as: "products",
 				},
 			},
@@ -1787,7 +1787,7 @@ exports.getAllProducts = async (req, res) => {
 			.limit(limit)
 			.populate("category")
 			.populate("subcategory")
-			.populate("intercategory")
+			.populate("innercategory")
 			.populate("brands")
 			.populate("solution");
 
@@ -1798,7 +1798,7 @@ exports.getAllProducts = async (req, res) => {
 			"name",
 			"information",
 			"description",
-			"intercategory.name",
+			"innercategory.name",
 			"subcategory.name",
 			"category.name",
 		]);
@@ -1838,7 +1838,7 @@ exports.getProductById = async (req, res) => {
 		let product = await Products.findById(req.params.id)
 			.populate("category")
 			.populate("subcategory")
-			.populate("intercategory")
+			.populate("innercategory")
 			.populate("brands")
 			.populate("solution");
 		if (!product) {

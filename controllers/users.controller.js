@@ -374,7 +374,7 @@ exports.getInnerCategoryById = async (req, res) => {
 		}
 
 		const productCount = await Products.countDocuments({
-			intercategory: req.params.id,
+			innercategory: req.params.id,
 		});
 
 		innercategory = modifyResponseByLang(innercategory, lang, ["name"]);
@@ -813,10 +813,10 @@ exports.getinnercategoriesBySubcategoryid = async (req, res) => {
 		const totalPages = Math.ceil(total / limit);
 
 		for (let i = 0; i < categories.length; i++) {
-			const intercategoryId = categories[i]._id;
+			const innercategoryId = categories[i]._id;
 
 			const productCount = await Products.countDocuments({
-				intercategory: intercategoryId,
+				innercategory: innercategoryId,
 			});
 
 			const subcategory = await Subcategories.findById(
@@ -882,7 +882,7 @@ exports.getProducts = async (req, res) => {
 		productQuery
 			.populate("category")
 			.populate("subcategory")
-			.populate("intercategory")
+			.populate("innercategory")
 			.populate("brands")
 			.populate("solution");
 
@@ -901,7 +901,7 @@ exports.getProducts = async (req, res) => {
 				"name",
 				"information",
 				"description",
-				"intercategory.name",
+				"innercategory.name",
 				"subcategory.name",
 				"category.name",
 			]);
@@ -975,7 +975,7 @@ exports.getLikedProducts = async (req, res) => {
 		productQuery
 			.populate("category")
 			.populate("subcategory")
-			.populate("intercategory")
+			.populate("innercategory")
 			.populate("brands")
 			.populate("solution");
 
@@ -988,7 +988,7 @@ exports.getLikedProducts = async (req, res) => {
 				"name",
 				"information",
 				"description",
-				"intercategory.name",
+				"innercategory.name",
 				"subcategory.name",
 				"category.name",
 			]);
