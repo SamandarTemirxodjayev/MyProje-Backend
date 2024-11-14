@@ -162,7 +162,7 @@ const productsSchema = new Schema(
 		},
 		innercategory: {
 			type: Number,
-			ref: "intercategory",
+			ref: "innercategory",
 			required: true,
 		},
 		brands: {

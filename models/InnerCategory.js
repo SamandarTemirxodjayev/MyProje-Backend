@@ -41,6 +41,6 @@ innerCategoryiesSchema.plugin(AutoIncrement, {
 	fieldName: "_id",
 });
 
-const InnerCategory = model("intercategory", innerCategoryiesSchema);
+const InnerCategory = model("innercategory", innerCategoryiesSchema);
 
 module.exports = InnerCategory;
