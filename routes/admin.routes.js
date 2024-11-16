@@ -8,6 +8,7 @@ router.post("/register", controller.register);
 router.post("/login", controller.login);
 router.get("/users", middleware, controller.getUsers);
 router.get("/users/search", middleware, controller.searchUser);
+router.get("/users/:id", middleware, controller.getUserById);
 router.post("/users/:id", middleware, controller.submitUserById);
 router.delete("/users/:id", middleware, controller.deleteUserById);
 router.post("/users", middleware, controller.createUser);

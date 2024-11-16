@@ -154,7 +154,24 @@ exports.searchUser = async (req, res) => {
 		});
 	}
 };
-
+exports.getUserById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let user = await Users.findById(req.params.id).populate("direction");
+		user = modifyResponseByLang(user, lang, ["direction.name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: user,
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.submitUserById = async (req, res) => {
 	try {
 		const user = await Users.findById(req.params.id);
@@ -182,7 +199,6 @@ exports.submitUserById = async (req, res) => {
 			`Sizning Ma'lumotlaringiz:\n\n<br> Login: ${user.phone_number}\n <br>Parol: ${text}`,
 		);
 		await user.save();
-		console.log(user);
 		return res.json({
 			status: true,
 			message: "success",
@@ -287,14 +303,24 @@ exports.createDirections = async (req, res) => {
 };
 exports.getAllDirections = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let directions = await Directions.find();
+		let {page = 1, limit, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let directions = await Directions.find().skip(skip).limit(limit);
+		const total = await Directions.countDocuments();
 		directions = modifyResponseByLang(directions, lang, ["name"]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: directions,
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			directions,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -397,17 +423,26 @@ exports.createAdvantages = async (req, res) => {
 };
 exports.getAllAdvantages = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let advantages = await Advantages.find();
+		let {page = 1, limit, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		let advantages = await Advantages.find().skip(skip).limit(limit);
+		const total = await Advantages.countDocuments();
 		advantages = modifyResponseByLang(advantages, lang, [
 			"title",
 			"description",
 		]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: advantages,
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			advantages,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
