@@ -1,1 +1,8 @@
-{}
+[
+  {
+    "rule_uz": "Hello World uz",
+    "rule_en": "Hello World en",
+    "rule_ru": "Hello World ru",
+    "updatedAt": 1731873297482
+  }
+]
