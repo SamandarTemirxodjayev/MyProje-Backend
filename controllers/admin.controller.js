@@ -1964,14 +1964,22 @@ exports.createInspiration = async (req, res) => {
 };
 exports.getAllInspirations = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let inspiration = await Inspiration.find();
+		const {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		let inspiration = await Inspiration.find().skip(skip).limit(limit);
+		const total = await Inspiration.countDocuments();
 		inspiration = modifyResponseByLang(inspiration, lang, ["name"]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: inspiration,
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			inspiration,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
