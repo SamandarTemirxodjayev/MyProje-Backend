@@ -49,5 +49,4 @@ router.post("/subscribe/email", middleware, controller.subscribeUserByEmail);
 
 router.get("/statistics", middleware, controller.getStatistics);
 
-router.get("/working", middleware, controller.getWorking);
 module.exports = router;
