@@ -21,11 +21,7 @@ router.get(
 );
 router.get("/subcategories", middleware, controller.getSubCategories);
 router.get("/subcategory/:id", middleware, controller.getSubCategoriesById);
-router.get(
-	"/innercategory/:id",
-	middleware,
-	controller.getInnerCategoryById,
-);
+router.get("/innercategory/:id", middleware, controller.getInnerCategoryById);
 router.get(
 	"/innercategories/:categoryId",
 	middleware,
@@ -40,7 +36,6 @@ router.get("/brands", middleware, controller.getBrands);
 router.get("/brand/:id", middleware, controller.getBrandById);
 router.get("/links", middleware, controller.getLinks);
 router.get("/usage-rules", middleware, controller.getUsage);
-router.get("/working", controller.getWorking);
 router.get("/shopping-gid", middleware, controller.getShoppingGidLimited);
 router.get("/shopping-gid/:id", middleware, controller.getShoppingGidById);
 router.get("/products", middleware, controller.getProducts);
@@ -53,4 +48,6 @@ router.get("/solutions", middleware, controller.getSolutions);
 router.post("/subscribe/email", middleware, controller.subscribeUserByEmail);
 
 router.get("/statistics", middleware, controller.getStatistics);
+
+router.get("/working", middleware, controller.getWorking);
 module.exports = router;

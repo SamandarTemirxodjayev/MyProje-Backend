@@ -1964,7 +1964,7 @@ exports.createInspiration = async (req, res) => {
 };
 exports.getAllInspirations = async (req, res) => {
 	try {
-		const {page = 1, limit = 10, lang} = req.query;
+		let {page = 1, limit = 10, lang} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
