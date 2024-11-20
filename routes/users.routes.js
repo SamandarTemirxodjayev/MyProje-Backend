@@ -11,6 +11,7 @@ router.post("/reset-password", middleware, controller.resetPassword);
 router.post("/restore-password", controller.restorePassword);
 router.post("/restore-password/:uuid", controller.restorePasswordConfirm);
 router.get("/directions", middleware, controller.getDirections);
+router.get("/search", middleware, controller.searchProductandCategories);
 router.get("/advantages", middleware, controller.getAdvantages);
 router.get("/categories", middleware, controller.getCategories);
 router.get("/category/:id", middleware, controller.getCategoryById);

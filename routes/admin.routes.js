@@ -86,6 +86,7 @@ router.put("/working", middleware, controller.updateisWorkding);
 
 router.post("/shopping-gid", middleware, controller.createShoppingGid);
 router.get("/shopping-gid", middleware, controller.getAllShoppingGids);
+router.get("/shopping-gid/:id", middleware, controller.getShoppingGidById);
 router.get(
 	"/shopping-gid/limited/:limit",
 	middleware,

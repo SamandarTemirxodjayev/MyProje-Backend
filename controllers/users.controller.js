@@ -297,6 +297,53 @@ exports.getDirections = async (req, res) => {
 		});
 	}
 };
+exports.searchProductandCategories = async (req, res) => {
+	try {
+		const {lang, text} = req.query;
+		let categories = await Category.find({
+			$or: [
+				{name_uz: {$regex: text, $options: "i"}},
+				{name_ru: {$regex: text, $options: "i"}},
+				{name_en: {$regex: text, $options: "i"}},
+			],
+		});
+		categories = modifyResponseByLang(categories, lang, ["name"]);
+		let products = await Products.find({
+			$or: [
+				{name_uz: {$regex: text, $options: "i"}},
+				{name_ru: {$regex: text, $options: "i"}},
+				{name_en: {$regex: text, $options: "i"}},
+			],
+		})
+			.populate("category")
+			.populate("subcategory")
+			.populate("innercategory")
+			.populate("brands")
+			.populate("solution");
+		products = modifyResponseByLang(products, lang, [
+			"name",
+			"information",
+			"description",
+			"innercategory.name",
+			"subcategory.name",
+			"category.name",
+		]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: {
+				categories,
+				products,
+			},
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getAdvantages = async (req, res) => {
 	try {
 		const {lang} = req.query;
