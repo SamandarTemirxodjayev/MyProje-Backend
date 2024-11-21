@@ -50,5 +50,6 @@ router.get("/solutions", middleware, controller.getSolutions);
 router.post("/subscribe/email", middleware, controller.subscribeUserByEmail);
 
 router.get("/statistics", middleware, controller.getStatistics);
+router.get("/max-balance", middleware, controller.getMaxBalance);
 
 module.exports = router;
