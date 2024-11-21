@@ -46,6 +46,10 @@ const usersSchema = new Schema(
 			type: Boolean,
 			default: false,
 		},
+		balance: {
+			type: Number,
+			default: 0,
+		},
 		visitedRoutes: [
 			{
 				route: {type: String},

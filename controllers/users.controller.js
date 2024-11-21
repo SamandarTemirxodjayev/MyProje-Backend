@@ -101,8 +101,25 @@ exports.editProfile = async (req, res) => {
 };
 exports.getMe = async (req, res) => {
 	try {
+		const {lang} = req.query;
 		const user = await Users.findById(req.user._id).populate("direction");
-		const {password, ...result} = user._doc;
+		let {password, ...result} = user._doc;
+		result = modifyResponseByLang(result, lang, ["direction.name"]);
+		const filePath = path.join(__dirname, "../database", `information.json`);
+		let filehandle = await open(filePath, "r");
+		let data = "";
+		for await (const line of filehandle.readLines()) {
+			data += line;
+		}
+		data = JSON.parse(data); //data[0].balance
+
+		const maxBalance = data[0]?.balance ?? 0; // Ensure balance exists in data
+		const userBalance = result.balance ?? 0; // Ensure user balance exists
+		result.balance_percentage =
+			maxBalance > 0
+				? parseInt(((userBalance / maxBalance) * 100).toFixed(2)) // Percentage with 2 decimal places
+				: 0;
+
 		return res.json({
 			status: true,
 			message: "success",
@@ -1099,6 +1116,44 @@ exports.toggleProductsLike = async (req, res) => {
 				},
 			});
 		}
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getProductsById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let product = await Products.findById(req.params.id)
+			.populate("category")
+			.populate("subcategory")
+			.populate("innercategory")
+			.populate("brands")
+			.populate("solution");
+		if (!product) {
+			return res.status(404).json({
+				status: false,
+				message: "Product not found",
+				data: null,
+			});
+		}
+		product = modifyResponseByLang(product, lang, [
+			"name",
+			"information",
+			"description",
+			"innercategory.name",
+			"subcategory.name",
+			"category.name",
+			"solution.name",
+		]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: product,
+		});
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({

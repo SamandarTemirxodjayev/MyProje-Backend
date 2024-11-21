@@ -1565,6 +1565,92 @@ exports.updateisWorkding = async (req, res) => {
 		});
 	}
 };
+exports.getBalance = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", `information.json`);
+	try {
+		let filehandle = await open(filePath, "r");
+		let data = "";
+		for await (const line of filehandle.readLines()) {
+			data += line;
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: JSON.parse(data),
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateBalance = async (req, res) => {
+	const filePath = path.join(__dirname, "../database", "information.json");
+
+	try {
+		// Read the existing file content
+		let fileContent;
+		try {
+			fileContent = await fs.readFile(filePath, "utf8");
+		} catch (err) {
+			// If file doesn't exist, initialize it as an empty array
+			fileContent = "[]";
+		}
+
+		// Parse the JSON content
+		let linksData = JSON.parse(fileContent);
+
+		// Extract the updated value from the request body
+		const {balance} = req.body;
+
+		// Validate if `isworking` is provided
+		if (typeof balance === "undefined") {
+			return res.status(400).json({
+				status: false,
+				message: "`information` field is required in the request body",
+			});
+		}
+
+		// Get the current timestamp for `updatedAt`
+		const updatedAt = Date.now();
+
+		// If data exists, update the first record, otherwise create a new one
+		if (linksData.length > 0) {
+			let currentLinks = linksData[0];
+
+			// Update the field and timestamp
+			currentLinks.balance = balance;
+			currentLinks.updatedAt = updatedAt;
+
+			// Save the updated data back
+			linksData[0] = currentLinks;
+		} else {
+			// If no data exists, create a new entry
+			linksData.push({
+				balance,
+				updatedAt,
+			});
+		}
+
+		// Write the updated content back to the file
+		await fs.writeFile(filePath, JSON.stringify(linksData, null, 2), "utf8");
+
+		// Respond with success
+		return res.json({
+			status: true,
+			message: "`balance` updated successfully",
+			data: linksData,
+		});
+	} catch (error) {
+		console.error("Error updating links:", error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.createShoppingGid = async (req, res) => {
 	try {
 		const shoppingGid = await ShoppingGid.create(req.body);

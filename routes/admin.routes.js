@@ -84,6 +84,9 @@ router.put("/links", middleware, controller.updateLinks);
 router.get("/working", middleware, controller.getIsWorking);
 router.put("/working", middleware, controller.updateisWorkding);
 
+router.get("/balance", middleware, controller.getBalance);
+router.put("/balance", middleware, controller.updateBalance);
+
 router.post("/shopping-gid", middleware, controller.createShoppingGid);
 router.get("/shopping-gid", middleware, controller.getAllShoppingGids);
 router.get("/shopping-gid/:id", middleware, controller.getShoppingGidById);
