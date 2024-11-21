@@ -192,6 +192,16 @@ const schema = new Schema(
 				type: String,
 			},
 		},
+		cancel: {
+			reason: {
+				type: String,
+				default: null,
+			},
+			date: {
+				type: Date,
+				default: null,
+			},
+		},
 		createdAt: {
 			type: Number,
 			default: Date.now(),
