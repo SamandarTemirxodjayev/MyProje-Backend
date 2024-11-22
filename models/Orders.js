@@ -28,6 +28,19 @@ const schema = new Schema(
 			phone_number: String,
 			email: String,
 		},
+		communication: {
+			full_name: String,
+			email: String,
+			phone_number: String,
+			comment: String,
+		},
+		delivery: {
+			type: String,
+			address: String,
+			kv: String,
+			pd: String,
+			is_private_house: Boolean,
+		},
 		status: {
 			type: Number,
 			default: 0,

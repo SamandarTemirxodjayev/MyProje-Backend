@@ -22,6 +22,12 @@ const categoryiesSchema = new Schema(
 			type: String,
 			required: true,
 		},
+		popular: {
+			is_popular: {
+				type: Boolean,
+				default: false,
+			},
+		},
 		createdAt: {
 			type: Number,
 			default: Date.now(),

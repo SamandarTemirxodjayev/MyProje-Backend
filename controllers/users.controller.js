@@ -316,15 +316,7 @@ exports.getDirections = async (req, res) => {
 };
 exports.searchProductandCategories = async (req, res) => {
 	try {
-		const {lang, text} = req.query;
-		let categories = await Category.find({
-			$or: [
-				{name_uz: {$regex: text, $options: "i"}},
-				{name_ru: {$regex: text, $options: "i"}},
-				{name_en: {$regex: text, $options: "i"}},
-			],
-		});
-		categories = modifyResponseByLang(categories, lang, ["name"]);
+		const {lang, text, limit} = req.query;
 		let products = await Products.find({
 			$or: [
 				{name_uz: {$regex: text, $options: "i"}},
@@ -336,7 +328,8 @@ exports.searchProductandCategories = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
-			.populate("solution");
+			.populate("solution")
+			.limit(limit);
 		products = modifyResponseByLang(products, lang, [
 			"name",
 			"information",
@@ -348,10 +341,7 @@ exports.searchProductandCategories = async (req, res) => {
 		return res.json({
 			status: true,
 			message: "success",
-			data: {
-				categories,
-				products,
-			},
+			data: products,
 		});
 	} catch (error) {
 		console.log(error);

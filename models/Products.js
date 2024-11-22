@@ -135,6 +135,12 @@ const productsSchema = new Schema(
 				default: 0,
 			},
 		},
+		popular: {
+			is_popular: {
+				type: Boolean,
+				default: false,
+			},
+		},
 		price: {
 			type: Number,
 			default: 0,
