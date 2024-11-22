@@ -186,6 +186,18 @@ const productsSchema = new Schema(
 				type: Number,
 				default: 1,
 			},
+			kuryer: {
+				amount: {
+					type: Number,
+					default: 0,
+				},
+			},
+			pick_up: {
+				amount: {
+					type: Number,
+					default: 0,
+				},
+			},
 		},
 		createdAt: {
 			type: Number,
