@@ -47,6 +47,10 @@ const inspirationsSchema = new Schema(
 				required: true,
 			},
 		},
+		status: {
+			type: Boolean,
+			default: true,
+		},
 		createdAt: {
 			type: Number,
 			default: Date.now(),
