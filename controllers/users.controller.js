@@ -14,7 +14,7 @@ const ShoppingGid = require("../models/ShoppingGid");
 const Subcategories = require("../models/Subcategories");
 const InnerCategory = require("../models/InnerCategory");
 const Products = require("../models/Products");
-const {modifyResponseByLang} = require("../utils/helpers");
+const {modifyResponseByLang, paginate} = require("../utils/helpers");
 const Subscribes = require("../models/Subscribes");
 const Inspiration = require("../models/Inspiration");
 const Solutions = require("../models/Solutions");
@@ -453,37 +453,25 @@ exports.getInnerCategoryById = async (req, res) => {
 };
 exports.getCategories = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let {page = 1, limit = 10} = req.query;
+		let {page = 1, limit = 10, lang, filter = {}} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
-		let categories = await Category.find().skip(skip).limit(limit);
-		const total = await Category.countDocuments();
-		const totalPages = Math.ceil(total / limit);
+		let categories = await Category.find({...filter})
+			.skip(skip)
+			.limit(limit);
+		const total = await Category.countDocuments({...filter});
 		categories = modifyResponseByLang(categories, lang, ["name"]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: categories,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
-						: null,
-			},
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			categories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
