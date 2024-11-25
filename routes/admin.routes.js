@@ -110,15 +110,11 @@ router.get("/products/:id", middleware, controller.getProductById);
 router.put("/products/:id", middleware, controller.updateProductById);
 router.delete("/products/:id", middleware, controller.deleteProductById);
 
-router.post("/inspirations", middleware, controller.createInspiration);
-router.get("/inspirations", middleware, controller.getAllInspirations);
-router.get("/inspirations/:id", middleware, controller.getInspirationById);
-router.put("/inspirations/:id", middleware, controller.updateInspirationById);
-router.delete(
-	"/inspirations/:id",
-	middleware,
-	controller.deleteInspirationById,
-);
+router.post("/collections", middleware, controller.createCollections);
+router.get("/collections", middleware, controller.getAllCollections);
+router.get("/collections/:id", middleware, controller.getCollectionsById);
+router.put("/collections/:id", middleware, controller.updateCollectionsById);
+router.delete("/collections/:id", middleware, controller.deleteCollectionsById);
 
 router.post("/solutions", middleware, controller.createSolution);
 router.get("/solutions", middleware, controller.getAllSolutions);

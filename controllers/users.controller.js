@@ -16,9 +16,10 @@ const InnerCategory = require("../models/InnerCategory");
 const Products = require("../models/Products");
 const {modifyResponseByLang, paginate} = require("../utils/helpers");
 const Subscribes = require("../models/Subscribes");
-const Inspiration = require("../models/Inspiration");
+const Inspiration = require("../models/Collections");
 const Solutions = require("../models/Solutions");
 const LikedProducts = require("../models/LikedProducts");
+const Collections = require("../models/Collections");
 
 exports.register = async (req, res) => {
 	try {
@@ -298,14 +299,25 @@ exports.restorePasswordConfirm = async (req, res) => {
 };
 exports.getDirections = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let directions = await Directions.find();
+		let {page = 1, limit = 10, lang, filter = {}} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		let directions = await Directions.find({...filter})
+			.skip(skip)
+			.limit(limit);
+		const total = await Directions.countDocuments({...filter});
 		directions = modifyResponseByLang(directions, lang, ["name"]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: directions,
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			directions,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -353,17 +365,25 @@ exports.searchProductandCategories = async (req, res) => {
 };
 exports.getAdvantages = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let advantages = await Advantages.find();
-		advantages = modifyResponseByLang(advantages, lang, [
-			"title",
-			"description",
-		]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: advantages,
-		});
+		let {page = 1, limit = 10, lang, filter = {}} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		let advantages = await Advantages.find({...filter})
+			.skip(skip)
+			.limit(limit);
+		const total = await Advantages.countDocuments({...filter});
+		advantages = modifyResponseByLang(advantages, lang, ["name"]);
+		const response = paginate(
+			page,
+			limit,
+			total,
+			advantages,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -374,14 +394,25 @@ exports.getAdvantages = async (req, res) => {
 };
 exports.getSubCategories = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let subcategories = await Subcategories.find();
+		let {page = 1, limit = 10, lang, filter = {}} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		let subcategories = await Subcategories.find({...filter})
+			.skip(skip)
+			.limit(limit);
+		const total = await Subcategories.countDocuments({...filter});
 		subcategories = modifyResponseByLang(subcategories, lang, ["name"]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: subcategories,
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			subcategories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -519,8 +550,7 @@ exports.getCategoryById = async (req, res) => {
 
 exports.getSubcategoriesByCategoryId = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let {page = 1, limit = 10} = req.query;
+		let {lang, page = 1, limit = 10} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
@@ -554,30 +584,16 @@ exports.getSubcategoriesByCategoryId = async (req, res) => {
 
 		// Modify response for the correct language
 		categories = modifyResponseByLang(categories, lang, ["name"]);
+		const response = paginate(
+			page,
+			limit,
+			total,
+			categories,
+			req.baseUrl,
+			req.path,
+		);
 
-		// Return the response
-		return res.json({
-			status: true,
-			message: "success",
-			data: categories,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
-						: null,
-			},
-		});
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -615,32 +631,17 @@ exports.getBrands = async (req, res) => {
 			"description.history",
 			"category.name",
 		]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: brands,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}${
-								category ? `&category=${category}` : ""
-						  }`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}${
-								category ? `&category=${category}` : ""
-						  }`
-						: null,
-			},
-		});
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			brands,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -815,8 +816,7 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 };
 exports.getinnercategoriesBySubcategoryid = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		let {page = 1, limit = 10} = req.query;
+		let {lang, page = 1, limit = 10} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
@@ -850,29 +850,16 @@ exports.getinnercategoriesBySubcategoryid = async (req, res) => {
 		}
 
 		categories = modifyResponseByLang(categories, lang, ["name"]);
+		const response = paginate(
+			page,
+			limit,
+			total,
+			categories,
+			req.baseUrl,
+			req.path,
+		);
 
-		return res.json({
-			status: true,
-			message: "success",
-			data: categories,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
-						: null,
-			},
-		});
+		return res.json(response);
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({
@@ -934,30 +921,16 @@ exports.getProducts = async (req, res) => {
 		});
 
 		const total = await Products.countDocuments(filter);
-		const totalPages = Math.ceil(total / limit);
+		const response = paginate(
+			page,
+			limit,
+			total,
+			products,
+			req.baseUrl,
+			req.path,
+		);
 
-		return res.json({
-			status: true,
-			message: "success",
-			data: products,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
-						: null,
-			},
-		});
+		return res.json(response);
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
@@ -1022,31 +995,16 @@ exports.getLikedProducts = async (req, res) => {
 			_id: {$in: productIds},
 			...filter,
 		});
-		const totalPages = Math.ceil(total / limit);
+		const response = paginate(
+			page,
+			limit,
+			total,
+			products,
+			req.baseUrl,
+			req.path,
+		);
 
-		// Return the response with pagination and links
-		return res.json({
-			status: true,
-			message: "success",
-			data: products,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
-						: null,
-			},
-		});
+		return res.json(response);
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
@@ -1147,48 +1105,27 @@ exports.getinspirations = async (req, res) => {
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
-		// Build the query with the filter
-		let query = {...filter};
+		let productQuery = Inspiration.find({...filter})
+			.skip(skip)
+			.limit(limit);
 
-		// Query the Inspiration model
-		let productQuery = Inspiration.find(query).skip(skip).limit(limit);
-
-		// Execute the query
 		let products = await productQuery;
 
-		// Get the total number of documents
-		const total = await Inspiration.countDocuments(query);
-
-		// Calculate the total number of pages
-		const totalPages = Math.ceil(total / limit);
-
+		const total = await Collections.countDocuments({...filter});
 		products = modifyResponseByLang(products, lang, [
 			"description.text",
 			"title",
 		]);
+		const response = paginate(
+			page,
+			limit,
+			total,
+			products,
+			req.baseUrl,
+			req.path,
+		);
 
-		return res.json({
-			status: true,
-			message: "success",
-			data: products,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
-						: null,
-			},
-		});
+		return res.json(response);
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
@@ -1203,49 +1140,28 @@ exports.getSolutions = async (req, res) => {
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
-
-		// Build the query with the filter
-		let query = {...filter};
-
-		// Query the Inspiration model
-		let productQuery = Solutions.find(query)
+		let productQuery = Solutions.find({...filter})
 			.skip(skip)
 			.limit(limit)
 			.populate("brand");
 
-		// Execute the query
 		let products = await productQuery;
 
-		// Get the total number of documents
-		const total = await Solutions.countDocuments(query);
+		const total = await Solutions.countDocuments({...filter});
 
-		// Calculate the total number of pages
 		const totalPages = Math.ceil(total / limit);
 
 		products = modifyResponseByLang(products, lang, ["name"]);
+		const response = paginate(
+			page,
+			limit,
+			total,
+			products,
+			req.baseUrl,
+			req.path,
+		);
 
-		return res.json({
-			status: true,
-			message: "success",
-			data: products,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
-						: null,
-			},
-		});
+		return res.json(response);
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
@@ -1258,7 +1174,7 @@ exports.getinspirationById = async (req, res) => {
 	try {
 		let {lang} = req.query;
 
-		let inspiration = await Inspiration.findById(req.params.id).populate(
+		let inspiration = await Collections.findById(req.params.id).populate(
 			"products",
 		);
 

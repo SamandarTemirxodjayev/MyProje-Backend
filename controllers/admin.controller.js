@@ -15,7 +15,7 @@ const ShoppingGid = require("../models/ShoppingGid");
 const Subcategories = require("../models/Subcategories");
 const Products = require("../models/Products");
 const {modifyResponseByLang, paginate} = require("../utils/helpers");
-const Inspiration = require("../models/Inspiration");
+const Collections = require("../models/Collections");
 const Solutions = require("../models/Solutions");
 
 exports.register = async (req, res) => {
@@ -2031,14 +2031,14 @@ exports.deleteProductById = async (req, res) => {
 		});
 	}
 };
-exports.createInspiration = async (req, res) => {
+exports.createCollections = async (req, res) => {
 	try {
-		const inspiration = await Inspiration.create(req.body);
-		await inspiration.save();
+		const collection = await Collections.create(req.body);
+		await collection.save();
 		return res.json({
 			status: true,
 			message: "success",
-			data: inspiration,
+			data: collection,
 		});
 	} catch (error) {
 		console.log(error);
@@ -2048,20 +2048,20 @@ exports.createInspiration = async (req, res) => {
 		});
 	}
 };
-exports.getAllInspirations = async (req, res) => {
+exports.getAllCollections = async (req, res) => {
 	try {
 		let {page = 1, limit = 10, lang} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
-		let inspiration = await Inspiration.find().skip(skip).limit(limit);
-		const total = await Inspiration.countDocuments();
-		inspiration = modifyResponseByLang(inspiration, lang, ["name"]);
+		let collections = await Collections.find().skip(skip).limit(limit);
+		const total = await Collections.countDocuments();
+		collections = modifyResponseByLang(collections, lang, ["name"]);
 		const response = paginate(
 			page,
 			limit,
 			total,
-			inspiration,
+			collections,
 			req.baseUrl,
 			req.path,
 		);
@@ -2074,22 +2074,22 @@ exports.getAllInspirations = async (req, res) => {
 		});
 	}
 };
-exports.getInspirationById = async (req, res) => {
+exports.getCollectionsById = async (req, res) => {
 	try {
 		const {lang} = req.query;
-		let inspiration = await Inspiration.findById(req.params.id);
-		if (!inspiration) {
+		let collections = await Collections.findById(req.params.id);
+		if (!collections) {
 			return res.status(400).json({
 				status: false,
-				message: "Inspiration not found",
+				message: "collections not found",
 				data: null,
 			});
 		}
-		inspiration = modifyResponseByLang(inspiration, lang, ["name"]);
+		collections = modifyResponseByLang(collections, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
-			data: inspiration,
+			data: collections,
 		});
 	} catch (error) {
 		console.log(error);
@@ -2099,24 +2099,24 @@ exports.getInspirationById = async (req, res) => {
 		});
 	}
 };
-exports.updateInspirationById = async (req, res) => {
+exports.updateCollectionsById = async (req, res) => {
 	try {
-		const inspiration = await Inspiration.findByIdAndUpdate(
+		const collections = await Collections.findByIdAndUpdate(
 			req.params.id,
 			req.body,
 			{new: true},
 		);
-		if (!inspiration) {
+		if (!collections) {
 			return res.status(400).json({
 				status: false,
-				message: "inspiration not found",
+				message: "collections not found",
 				data: null,
 			});
 		}
 		return res.json({
 			status: true,
 			message: "success",
-			data: inspiration,
+			data: collections,
 		});
 	} catch (error) {
 		console.log(error);
@@ -2126,20 +2126,20 @@ exports.updateInspirationById = async (req, res) => {
 		});
 	}
 };
-exports.deleteInspirationById = async (req, res) => {
+exports.deleteCollectionsById = async (req, res) => {
 	try {
-		const inspiration = await Inspiration.findByIdAndDelete(req.params.id);
-		if (!inspiration) {
+		const collections = await Collections.findByIdAndDelete(req.params.id);
+		if (!collections) {
 			return res.status(400).json({
 				status: false,
-				message: "inspiration not found",
+				message: "collections not found",
 				data: null,
 			});
 		}
 		return res.json({
 			status: true,
 			message: "success",
-			data: inspiration,
+			data: collections,
 		});
 	} catch (error) {
 		console.log(error);

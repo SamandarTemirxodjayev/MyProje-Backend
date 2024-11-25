@@ -1,7 +1,7 @@
 const {Schema, model} = require("mongoose");
 const {AutoIncrement} = require("../utils/helpers");
 
-const inspirationsSchema = new Schema(
+const schema = new Schema(
 	{
 		_id: {
 			type: Number,
@@ -61,11 +61,11 @@ const inspirationsSchema = new Schema(
 	},
 );
 
-inspirationsSchema.plugin(AutoIncrement, {
-	modelName: "inspiration",
+schema.plugin(AutoIncrement, {
+	modelName: "collection",
 	fieldName: "_id",
 });
 
-const Inspiration = model("inspirations", inspirationsSchema);
+const Collections = model("collections", schema);
 
-module.exports = Inspiration;
+module.exports = Collections;

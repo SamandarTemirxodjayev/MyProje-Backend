@@ -43,8 +43,8 @@ router.get("/products", middleware, controller.getProducts);
 router.get("/products/liked", middleware, controller.getLikedProducts);
 router.post("/products/like", middleware, controller.toggleProductsLike);
 router.get("/products/:id", middleware, controller.getProductsById);
-router.get("/inspirations", middleware, controller.getinspirations);
-router.get("/inspiration/:id", middleware, controller.getinspirationById);
+router.get("/collections", middleware, controller.getinspirations);
+router.get("/collections/:id", middleware, controller.getinspirationById);
 router.get("/solutions", middleware, controller.getSolutions);
 
 router.post("/subscribe/email", middleware, controller.subscribeUserByEmail);
