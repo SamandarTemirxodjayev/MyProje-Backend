@@ -106,6 +106,7 @@ router.delete(
 
 router.post("/products", middleware, controller.createProducts);
 router.get("/products", middleware, controller.getAllProducts);
+router.get("/products/search", middleware, controller.searchProducts);
 router.get("/products/:id", middleware, controller.getProductById);
 router.put("/products/:id", middleware, controller.updateProductById);
 router.delete("/products/:id", middleware, controller.deleteProductById);

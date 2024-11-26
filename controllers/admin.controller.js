@@ -1953,6 +1953,47 @@ exports.getAllProducts = async (req, res) => {
 		});
 	}
 };
+exports.searchProducts = async (req, res) => {
+	try {
+		let {text, page = 1, limit = 10} = req.query;
+
+		if (!text) {
+			return res.status(400).json({
+				status: false,
+				message: "Search query is required",
+			});
+		}
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		const searchCriteria = {
+			name: {$regex: text, $options: "i"},
+		};
+
+		let categories = await Products.find(searchCriteria)
+			.skip(skip)
+			.limit(limit);
+		const total = await Products.countDocuments(searchCriteria);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			categories,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getProductById = async (req, res) => {
 	try {
 		const {lang} = req.query;

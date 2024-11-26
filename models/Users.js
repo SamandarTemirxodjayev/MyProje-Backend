@@ -8,7 +8,6 @@ const usersSchema = new Schema(
 		},
 		name: {
 			type: String,
-			required: true,
 		},
 		surname: {
 			type: String,
@@ -19,7 +18,7 @@ const usersSchema = new Schema(
 		},
 		phone_number: {
 			type: String,
-			required: true,
+
 			unique: true,
 		},
 		resume_url: {

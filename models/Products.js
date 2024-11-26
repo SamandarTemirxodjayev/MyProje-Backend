@@ -8,29 +8,23 @@ const productsSchema = new Schema(
 		},
 		name_uz: {
 			type: String,
-			required: true,
 		},
 		name_ru: {
 			type: String,
-			required: true,
 		},
 		name_en: {
 			type: String,
-			required: true,
 		},
 		photo_urls: [
 			{
 				url: {
 					type: String,
-					required: true,
 				},
 				id: {
 					type: String,
-					required: true,
 				},
 				color: {
 					type: String,
-					required: true,
 				},
 			},
 		],
@@ -38,15 +32,12 @@ const productsSchema = new Schema(
 			{
 				url: {
 					type: String,
-					required: true,
 				},
 				name: {
 					type: String,
-					required: true,
 				},
 				id: {
 					type: String,
-					required: true,
 				},
 			},
 		],
@@ -57,11 +48,9 @@ const productsSchema = new Schema(
 			{
 				key: {
 					type: String,
-					required: true,
 				},
 				value: {
 					type: String,
-					required: true,
 				},
 			},
 		],
@@ -69,11 +58,9 @@ const productsSchema = new Schema(
 			{
 				key: {
 					type: String,
-					required: true,
 				},
 				value: {
 					type: String,
-					required: true,
 				},
 			},
 		],
@@ -81,11 +68,9 @@ const productsSchema = new Schema(
 			{
 				key: {
 					type: String,
-					required: true,
 				},
 				value: {
 					type: String,
-					required: true,
 				},
 			},
 		],
@@ -93,33 +78,26 @@ const productsSchema = new Schema(
 			{
 				url: {
 					type: String,
-					required: true,
 				},
 				name: {
 					type: String,
-					required: true,
 				},
 				photo_url: {
 					type: String,
-					required: true,
 				},
 				id: {
 					type: String,
-					required: true,
 				},
 			},
 		],
 		description_uz: {
 			type: String,
-			required: true,
 		},
 		description_ru: {
 			type: String,
-			required: true,
 		},
 		description_en: {
 			type: String,
-			required: true,
 		},
 		sale: {
 			is_sale: {
@@ -144,7 +122,6 @@ const productsSchema = new Schema(
 		price: {
 			type: Number,
 			default: 0,
-			required: true,
 		},
 		cashback: {
 			type: Number,
@@ -159,27 +136,22 @@ const productsSchema = new Schema(
 		category: {
 			type: Number,
 			ref: "category",
-			required: true,
 		},
 		subcategory: {
 			type: Number,
 			ref: "subcategory",
-			required: true,
 		},
 		innercategory: {
 			type: Number,
 			ref: "innercategory",
-			required: true,
 		},
 		brands: {
 			type: Number,
 			ref: "brands",
-			required: true,
 		},
 		solution: {
 			type: Number,
 			ref: "solutions",
-			required: true,
 		},
 		delivery: {
 			day: {

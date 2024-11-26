@@ -8,11 +8,9 @@ const subscribesSchema = new Schema(
 		},
 		email: {
 			type: String,
-			required: true,
 		},
 		user_id: {
 			type: Number,
-			required: true,
 		},
 		createdAt: {
 			type: Number,

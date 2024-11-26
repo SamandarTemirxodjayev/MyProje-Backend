@@ -12,15 +12,12 @@ const schema = new Schema(
 		},
 		title_uz: {
 			type: String,
-			required: true,
 		},
 		title_ru: {
 			type: String,
-			required: true,
 		},
 		title_en: {
 			type: String,
-			required: true,
 		},
 		products: [
 			{
@@ -32,19 +29,15 @@ const schema = new Schema(
 		description: {
 			photo_url: {
 				type: String,
-				required: true,
 			},
 			text_uz: {
 				type: String,
-				required: true,
 			},
 			text_ru: {
 				type: String,
-				required: true,
 			},
 			text_en: {
 				type: String,
-				required: true,
 			},
 		},
 		status: {

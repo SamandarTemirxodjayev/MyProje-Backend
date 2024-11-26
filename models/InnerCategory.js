@@ -8,15 +8,12 @@ const innerCategoryiesSchema = new Schema(
 		},
 		name_uz: {
 			type: String,
-			required: true,
 		},
 		name_ru: {
 			type: String,
-			required: true,
 		},
 		name_en: {
 			type: String,
-			required: true,
 		},
 		photo_url: {
 			type: String,

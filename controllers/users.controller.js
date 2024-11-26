@@ -567,22 +567,16 @@ exports.getSubcategoriesByCategoryId = async (req, res) => {
 			category: req.params.id,
 		});
 
-		// Calculate total pages
-		const totalPages = Math.ceil(total / limit);
-
-		// For each subcategory, count products related to subcategory._id
 		for (let i = 0; i < categories.length; i++) {
 			const subcategoryId = categories[i]._id;
 			const productCount = await Products.countDocuments({
 				subcategory: subcategoryId,
 			});
 
-			// Add quantity key to each category with the count of products
 			categories[i] = categories[i].toObject(); // Convert Mongoose document to plain object
 			categories[i].quantity = productCount;
 		}
 
-		// Modify response for the correct language
 		categories = modifyResponseByLang(categories, lang, ["name"]);
 		const response = paginate(
 			page,
@@ -626,7 +620,6 @@ exports.getBrands = async (req, res) => {
 
 		const total = await Brands.countDocuments(query);
 
-		const totalPages = Math.ceil(total / limit);
 		brands = modifyResponseByLang(brands, lang, [
 			"description.history",
 			"category.name",
@@ -831,8 +824,6 @@ exports.getinnercategoriesBySubcategoryid = async (req, res) => {
 			subcategory: req.params.id,
 		});
 
-		const totalPages = Math.ceil(total / limit);
-
 		for (let i = 0; i < categories.length; i++) {
 			const innercategoryId = categories[i]._id;
 
@@ -871,39 +862,69 @@ exports.getinnercategoriesBySubcategoryid = async (req, res) => {
 
 exports.getProducts = async (req, res) => {
 	try {
-		let {page = 1, limit = 10, filter = {}, sort, order, lang} = req.query;
+		let {
+			page = 1,
+			limit = 10,
+			filter = {},
+			sort,
+			order,
+			lang,
+			delivery_day_gte,
+			delivery_day_lte,
+			amount_gte,
+			amount_lte,
+			color,
+		} = req.query;
+
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
-
 		const sortOrder = order === "desc" ? -1 : 1;
 
-		// Query products with filter and pagination
-		let productQuery = Products.find({...filter})
-			.skip(skip)
-			.limit(limit);
-
-		if (sort) {
-			productQuery = productQuery.sort({[sort]: sortOrder});
+		if (delivery_day_gte || delivery_day_lte) {
+			filter["delivery.day"] = {};
+			if (delivery_day_gte)
+				filter["delivery.day"].$gte = parseInt(delivery_day_gte);
+			if (delivery_day_lte)
+				filter["delivery.day"].$lte = parseInt(delivery_day_lte);
 		}
 
-		productQuery
+		if (amount_gte || amount_lte) {
+			filter["price"] = {};
+			if (delivery_day_gte) filter["price"].$gte = parseInt(amount_gte);
+			if (delivery_day_lte) filter["price"].$lte = parseInt(amount_lte);
+		}
+
+		if (color) {
+			filter["photo_urls.color"] = color;
+		}
+
+		let productQuery = Products.find(filter)
+			.skip(skip)
+			.limit(limit)
 			.populate("category")
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
 			.populate("solution");
 
-		// Fetch liked product IDs for the user
+		if (sort === "sales") {
+			productQuery = productQuery.sort({sales: sortOrder});
+		} else if (sort === "new") {
+			productQuery = productQuery.sort({createdAt: -1});
+		} else if (sort === "cheap") {
+			productQuery = productQuery.sort({price: 1});
+		} else if (sort === "expensive") {
+			productQuery = productQuery.sort({price: -1});
+		}
+
 		const likedProducts = await LikedProducts.find({
 			user_id: req.user._id,
 		}).select("product_id");
 		const likedProductIds = likedProducts.map((like) => like.product_id);
 
-		// Execute product query
 		let products = await productQuery;
 
-		// Modify products with language and liked status
 		products = products.map((product) => {
 			const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
 				"name",
@@ -914,7 +935,6 @@ exports.getProducts = async (req, res) => {
 				"category.name",
 			]);
 
-			// Add `liked: true` if product is in liked products, otherwise `liked: false`
 			modifiedProduct.liked = likedProductIds.includes(product._id);
 
 			return modifiedProduct;
@@ -939,6 +959,7 @@ exports.getProducts = async (req, res) => {
 		});
 	}
 };
+
 exports.getLikedProducts = async (req, res) => {
 	try {
 		// Extract query parameters
@@ -1148,8 +1169,6 @@ exports.getSolutions = async (req, res) => {
 		let products = await productQuery;
 
 		const total = await Solutions.countDocuments({...filter});
-
-		const totalPages = Math.ceil(total / limit);
 
 		products = modifyResponseByLang(products, lang, ["name"]);
 		const response = paginate(

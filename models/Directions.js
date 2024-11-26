@@ -8,15 +8,12 @@ const directionsSchema = new Schema(
 		},
 		name_uz: {
 			type: String,
-			required: true,
 		},
 		name_ru: {
 			type: String,
-			required: true,
 		},
 		name_en: {
 			type: String,
-			required: true,
 		},
 		createdAt: {
 			type: Number,
