@@ -373,7 +373,10 @@ exports.getAdvantages = async (req, res) => {
 			.skip(skip)
 			.limit(limit);
 		const total = await Advantages.countDocuments({...filter});
-		advantages = modifyResponseByLang(advantages, lang, ["name"]);
+		advantages = modifyResponseByLang(advantages, lang, [
+			"title",
+			"description",
+		]);
 		const response = paginate(
 			page,
 			limit,
@@ -891,8 +894,8 @@ exports.getProducts = async (req, res) => {
 
 		if (amount_gte || amount_lte) {
 			filter["price"] = {};
-			if (delivery_day_gte) filter["price"].$gte = parseInt(amount_gte);
-			if (delivery_day_lte) filter["price"].$lte = parseInt(amount_lte);
+			if (amount_gte) filter["price"].$gte = parseInt(amount_gte);
+			if (amount_lte) filter["price"].$lte = parseInt(amount_lte);
 		}
 
 		if (color) {
@@ -962,31 +965,25 @@ exports.getProducts = async (req, res) => {
 
 exports.getLikedProducts = async (req, res) => {
 	try {
-		// Extract query parameters
 		let {page = 1, limit = 10, filter = {}, sort, order, lang} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 		const sortOrder = order === "desc" ? -1 : 1;
 
-		// Get liked products by user_id and retrieve only product_id field
 		const likedProductIds = await LikedProducts.find({
 			user_id: req.user._id,
 		}).select("product_id");
 		const productIds = likedProductIds.map((like) => like.product_id);
 
-		// Fetch products by productIds with filtering, sorting, and pagination
 		let productQuery = Products.find({...filter, _id: {$in: productIds}});
 
-		// Apply sorting if specified
 		if (sort) {
 			productQuery = productQuery.sort({[sort]: sortOrder});
 		}
 
-		// Apply pagination
 		productQuery = productQuery.skip(skip).limit(limit);
 
-		// Populate fields
 		productQuery
 			.populate("category")
 			.populate("subcategory")
@@ -994,10 +991,8 @@ exports.getLikedProducts = async (req, res) => {
 			.populate("brands")
 			.populate("solution");
 
-		// Execute query and fetch products
 		let products = await productQuery;
 
-		// Modify each product for language and add `liked: true`
 		products = products.map((product) => {
 			const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
 				"name",
@@ -1011,7 +1006,6 @@ exports.getLikedProducts = async (req, res) => {
 			return modifiedProduct;
 		});
 
-		// Get total liked products for pagination
 		const total = await Products.countDocuments({
 			_id: {$in: productIds},
 			...filter,
