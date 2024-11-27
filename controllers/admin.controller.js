@@ -1971,7 +1971,11 @@ exports.searchProducts = async (req, res) => {
 		const skip = (page - 1) * limit;
 
 		const searchCriteria = {
-			name: {$regex: text, $options: "i"},
+			$or: [
+				{name_uz: {$regex: text, $options: "i"}},
+				{name_ru: {$regex: text, $options: "i"}},
+				{name_en: {$regex: text, $options: "i"}},
+			],
 		};
 
 		let categories = await Products.find(searchCriteria)

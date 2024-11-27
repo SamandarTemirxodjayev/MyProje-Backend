@@ -20,6 +20,7 @@ const Inspiration = require("../models/Collections");
 const Solutions = require("../models/Solutions");
 const LikedProducts = require("../models/LikedProducts");
 const Collections = require("../models/Collections");
+const Colors = require("../models/Colors");
 
 exports.register = async (req, res) => {
 	try {
@@ -862,7 +863,33 @@ exports.getinnercategoriesBySubcategoryid = async (req, res) => {
 		});
 	}
 };
+exports.getColors = async (req, res) => {
+	try {
+		let {lang, page = 1, limit = 10} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		let colors = await Colors.find().skip(skip).limit(limit);
+		const total = await Colors.countDocuments();
+		colors = modifyResponseByLang(colors, lang, ["name"]);
+		const response = paginate(
+			page,
+			limit,
+			total,
+			colors,
+			req.baseUrl,
+			req.path,
+		);
 
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getProducts = async (req, res) => {
 	try {
 		let {

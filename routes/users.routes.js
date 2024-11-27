@@ -40,6 +40,7 @@ router.get("/usage-rules", middleware, controller.getUsage);
 router.get("/shopping-gid", middleware, controller.getShoppingGidLimited);
 router.get("/shopping-gid/:id", middleware, controller.getShoppingGidById);
 router.get("/products", middleware, controller.getProducts);
+router.get("/colors", middleware, controller.getColors);
 router.get("/products/liked", middleware, controller.getLikedProducts);
 router.post("/products/like", middleware, controller.toggleProductsLike);
 router.get("/products/:id", middleware, controller.getProductsById);
