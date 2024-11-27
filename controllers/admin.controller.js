@@ -17,6 +17,7 @@ const Products = require("../models/Products");
 const {modifyResponseByLang, paginate} = require("../utils/helpers");
 const Collections = require("../models/Collections");
 const Solutions = require("../models/Solutions");
+const Colors = require("../models/Colors");
 
 exports.register = async (req, res) => {
 	try {
@@ -1910,6 +1911,7 @@ exports.getAllProducts = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
+			.populate("photo_urls.color")
 			.populate("solution");
 
 		const total = await Products.countDocuments(query);
@@ -1921,6 +1923,7 @@ exports.getAllProducts = async (req, res) => {
 			"description",
 			"innercategory.name",
 			"subcategory.name",
+			"photo_urls.color.name",
 			"category.name",
 		]);
 		return res.json({
@@ -2002,6 +2005,7 @@ exports.getProductById = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
+			.populate("photo_urls.color")
 			.populate("solution");
 		if (!product) {
 			return res.status(400).json({
@@ -2384,6 +2388,169 @@ exports.deleteSolutionById = async (req, res) => {
 			status: true,
 			message: "success",
 			data: solution,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createColor = async (req, res) => {
+	try {
+		const color = await Colors.create(req.body);
+		await color.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: color,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllColors = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let colors = await Colors.find().skip(skip).limit(limit);
+		const total = await Colors.countDocuments();
+
+		colors = modifyResponseByLang(colors, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			colors,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.searchColors = async (req, res) => {
+	try {
+		let {text, lang, page = 1, limit = 10} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+		if (!text) {
+			return res.status(400).json({
+				status: false,
+				message: "Search query is required",
+			});
+		}
+
+		const searchCriteria = {
+			$or: [
+				{name_uz: {$regex: text, $options: "i"}},
+				{name_ru: {$regex: text, $options: "i"}},
+				{name_en: {$regex: text, $options: "i"}},
+			],
+		};
+
+		let colors = await Colors.find(searchCriteria).skip(skip).limit(limit);
+		const total = await Colors.countDocuments(searchCriteria);
+
+		colors = modifyResponseByLang(colors, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			colors,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getColorById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let color = await Colors.findById(req.params.id);
+		if (!color) {
+			return res.status(400).json({
+				status: false,
+				message: "color not found",
+				data: null,
+			});
+		}
+		color = modifyResponseByLang(color, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: color,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateColorById = async (req, res) => {
+	try {
+		const color = await Colors.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!color) {
+			return res.status(400).json({
+				status: false,
+				message: "color not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: color,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteColorById = async (req, res) => {
+	try {
+		const color = await Colors.findByIdAndDelete(req.params.id);
+		if (!color) {
+			return res.status(400).json({
+				status: false,
+				message: "color not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: color,
 		});
 	} catch (error) {
 		console.log(error);

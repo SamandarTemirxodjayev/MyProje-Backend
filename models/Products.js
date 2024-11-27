@@ -24,7 +24,8 @@ const productsSchema = new Schema(
 					type: String,
 				},
 				color: {
-					type: String,
+					type: Number,
+					ref: "colors",
 				},
 			},
 		],

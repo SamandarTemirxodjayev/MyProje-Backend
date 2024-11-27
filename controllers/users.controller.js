@@ -909,6 +909,7 @@ exports.getProducts = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
+			.populate("photo_urls.color")
 			.populate("solution");
 
 		if (sort === "sales") {
@@ -919,6 +920,8 @@ exports.getProducts = async (req, res) => {
 			productQuery = productQuery.sort({price: 1});
 		} else if (sort === "expensive") {
 			productQuery = productQuery.sort({price: -1});
+		} else if (sort === "popular") {
+			productQuery = productQuery.sort({sales: 1});
 		}
 
 		const likedProducts = await LikedProducts.find({
@@ -989,6 +992,7 @@ exports.getLikedProducts = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
+			.populate("photo_urls.color")
 			.populate("solution");
 
 		let products = await productQuery;
@@ -1082,6 +1086,7 @@ exports.getProductsById = async (req, res) => {
 			.populate("category")
 			.populate("subcategory")
 			.populate("innercategory")
+			.populate("photo_urls.color")
 			.populate("brands")
 			.populate("solution");
 		if (!product) {

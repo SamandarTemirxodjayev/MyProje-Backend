@@ -124,4 +124,11 @@ router.get("/solutions/:id", middleware, controller.getSolutionById);
 router.put("/solutions/:id", middleware, controller.updateSolutionById);
 router.delete("/solutions/:id", middleware, controller.deleteSolutionById);
 
+router.post("/colors", middleware, controller.createColor);
+router.get("/colors", middleware, controller.getAllColors);
+router.get("/colors/search", middleware, controller.searchColors);
+router.get("/colors/:id", middleware, controller.getColorById);
+router.put("/colors/:id", middleware, controller.updateColorById);
+router.delete("/colors/:id", middleware, controller.deleteColorById);
+
 module.exports = router;
