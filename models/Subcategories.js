@@ -22,6 +22,12 @@ const subcategoryiesSchema = new Schema(
 			type: Number,
 			ref: "category",
 		},
+		popular: {
+			is_popular: {
+				type: Boolean,
+				default: false,
+			},
+		},
 		createdAt: {
 			type: Number,
 			default: Date.now(),

@@ -647,6 +647,54 @@ exports.getBrands = async (req, res) => {
 		});
 	}
 };
+exports.getPopulars = async (req, res) => {
+	try {
+		// Extract query parameters
+		let {page = 1, limit = 10, lang = "en"} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+
+		// Fetch popular documents from all collections
+		const [categories, subcategories, innerCategories] = await Promise.all([
+			Category.find({"popular.is_popular": true}).lean(),
+			Subcategories.find({"popular.is_popular": true}).lean(),
+			InnerCategory.find({"popular.is_popular": true}).lean(),
+		]);
+
+		// Merge results into one array
+		let allPopulars = [...categories, ...subcategories, ...innerCategories];
+
+		// Sort by createdAt in descending order
+		allPopulars.sort((a, b) => b.createdAt - a.createdAt);
+
+		// Modify the response for the specified language
+		allPopulars = allPopulars.map((item) =>
+			modifyResponseByLang(item, lang, ["name", "description"]),
+		);
+
+		// Pagination
+		const total = allPopulars.length;
+		const paginatedData = allPopulars.slice((page - 1) * limit, page * limit);
+
+		// Prepare the paginated response
+		const response = paginate(
+			page,
+			limit,
+			total,
+			paginatedData,
+			req.baseUrl,
+			req.path,
+		);
+
+		return res.json(response);
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getBrandById = async (req, res) => {
 	try {
 		const {lang} = req.query;

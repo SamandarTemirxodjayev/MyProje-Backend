@@ -19,6 +19,12 @@ const innerCategoryiesSchema = new Schema(
 			type: String,
 			required: true,
 		},
+		popular: {
+			is_popular: {
+				type: Boolean,
+				default: false,
+			},
+		},
 		subcategory: {
 			type: Number,
 			ref: "subcategory",
