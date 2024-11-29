@@ -91,6 +91,15 @@ const productsSchema = new Schema(
 				},
 			},
 		],
+		x: {
+			type: Number,
+		},
+		y: {
+			type: Number,
+		},
+		z: {
+			type: Number,
+		},
 		description_uz: {
 			type: String,
 		},

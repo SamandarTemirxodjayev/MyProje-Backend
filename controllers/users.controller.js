@@ -895,12 +895,18 @@ exports.getProducts = async (req, res) => {
 		let {
 			page = 1,
 			limit = 10,
-			filter = {},
+			filter = {}, // Default to an empty object
 			sort,
 			order,
 			lang,
 			delivery_day_gte,
 			delivery_day_lte,
+			x_gte,
+			x_lte,
+			y_gte,
+			y_lte,
+			z_gte,
+			z_lte,
 			amount_gte,
 			amount_lte,
 			color,
@@ -910,7 +916,11 @@ exports.getProducts = async (req, res) => {
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 		const sortOrder = order === "desc" ? -1 : 1;
-
+		// if (filter || filter.brands) {
+		// 	filter.brands = parseInt(filter.brands);
+		// }
+		console.log(filter);
+		// Add additional filters dynamically
 		if (delivery_day_gte || delivery_day_lte) {
 			filter["delivery.day"] = {};
 			if (delivery_day_gte)
@@ -923,6 +933,29 @@ exports.getProducts = async (req, res) => {
 			filter["price"] = {};
 			if (amount_gte) filter["price"].$gte = parseInt(amount_gte);
 			if (amount_lte) filter["price"].$lte = parseInt(amount_lte);
+		}
+		if (x_gte || x_lte || y_gte || y_lte || z_gte || z_lte) {
+			if (x_gte || x_lte) {
+				filter["x"] = {};
+				if (x_gte && !isNaN(parseFloat(x_gte)))
+					filter["x"].$gte = parseFloat(x_gte);
+				if (x_lte && !isNaN(parseFloat(x_lte)))
+					filter["x"].$lte = parseFloat(x_lte);
+			}
+			if (y_gte || y_lte) {
+				filter["y"] = {};
+				if (y_gte && !isNaN(parseFloat(y_gte)))
+					filter["y"].$gte = parseFloat(y_gte);
+				if (y_lte && !isNaN(parseFloat(y_lte)))
+					filter["y"].$lte = parseFloat(y_lte);
+			}
+			if (z_gte || z_lte) {
+				filter["z"] = {};
+				if (z_gte && !isNaN(parseFloat(z_gte)))
+					filter["z"].$gte = parseFloat(z_gte);
+				if (z_lte && !isNaN(parseFloat(z_lte)))
+					filter["z"].$lte = parseFloat(z_lte);
+			}
 		}
 
 		if (color) {
