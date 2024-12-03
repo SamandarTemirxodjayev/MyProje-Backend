@@ -1,10 +1,11 @@
 const {JSONRPCServer} = require("json-rpc-2.0");
 const RpcError = require("json-rpc-error");
+const Orders = require("../models/Orders");
+const Products = require("../models/Products");
 const server = new JSONRPCServer();
+let error_message;
 server.addMethod("CheckPerformTransaction", async (params) => {
-	let order = await Orders.findOne({
-		order_id: params.account.order_id,
-	});
+	let order = await Orders.findById(params.account.order_id);
 	if (!order) {
 		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-31061, "Order not found");
@@ -25,7 +26,7 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 			throw new RpcError(-31062, "Product not found in order");
 		}
 
-		const price = productDoc.sale.isSale
+		const price = productDoc.sale.is_sale
 			? productDoc.sale.price
 			: productDoc.price;
 		const subtotal = price * product.quantity;
@@ -33,7 +34,7 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 
 		receiptItems.push({
 			title: productDoc.name_uz,
-			price: productDoc.sale.isSale ? productDoc.sale.price : productDoc.price,
+			price: productDoc.sale.is_sale ? productDoc.sale.price : productDoc.price,
 			count: product.quantity,
 			code: productDoc.MXIK.code,
 			package_code: productDoc.MXIK.package_code,
@@ -93,12 +94,7 @@ server.addMethod("CancelTransaction", async (params) => {
 server.addMethod("PerformTransaction", async (params) => {
 	const order = await Orders.findOne({
 		"pay.payme.id": params.id,
-	})
-		.populate("userId")
-		.populate({
-			path: "products.product",
-			populate: [{path: "brand"}, {path: "category"}, {path: "subcategory"}],
-		});
+	});
 	if (!order) {
 		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-32504, "Order not found");
@@ -114,17 +110,15 @@ server.addMethod("PerformTransaction", async (params) => {
 		order.pay.status = "payed";
 		order.pay.pay_date = new Date().toISOString();
 		order.pay.type = "payme";
-		wsSendMessage(order);
 		let totalAmount = 0;
 		for (const product of order.products) {
 			const productDoc = await Products.findById(product.product);
-			const price = productDoc.sale.isSale
+			const price = productDoc.sale.is_sale
 				? productDoc.sale.price
 				: productDoc.price;
 			const subtotal = price * product.quantity;
 			totalAmount += subtotal;
 			productDoc.quantity -= product.quantity;
-			productDoc.saleds += product.quantity;
 			if (productDoc.quantity <= 0) {
 				productDoc.stock = false;
 			}
@@ -132,12 +126,6 @@ server.addMethod("PerformTransaction", async (params) => {
 		}
 
 		await order.save();
-		if (order.userId.telegram.id) {
-			await sendMessageByBot(
-				order.userId.telegram.id,
-				"Buyurtmagiz to'lovi payme orqali qabul qilindi",
-			);
-		}
 	}
 
 	return {
@@ -149,7 +137,7 @@ server.addMethod("PerformTransaction", async (params) => {
 
 server.addMethod("CreateTransaction", async (params) => {
 	const order = await Orders.findOne({
-		order_id: params.account.order_id,
+		_id: params.account.order_id,
 	});
 	if (!order) {
 		error_message = "Buyurtma Topilmadi";
@@ -168,7 +156,7 @@ server.addMethod("CreateTransaction", async (params) => {
 			throw new RpcError(-31060, "Product not found in order");
 		}
 
-		const price = productDoc.sale.isSale
+		const price = productDoc.sale.is_sale
 			? productDoc.sale.price
 			: productDoc.price;
 		const subtotal = price * product.quantity;
@@ -238,7 +226,7 @@ exports.PaymeHandler = async (req, res) => {
 	}
 
 	try {
-		fs.readFile("./db/payme.json", "utf8", async (err, data) => {
+		fs.readFile("./database/payme.json", "utf8", async (err, data) => {
 			if (err) {
 				return res.json({
 					jsonrpc: "2.0",

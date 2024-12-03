@@ -53,5 +53,7 @@ router.post("/subscribe/email", middleware, controller.subscribeUserByEmail);
 
 router.get("/statistics", middleware, controller.getStatistics);
 router.get("/max-balance", middleware, controller.getMaxBalance);
+router.post("/order-file", middleware, controller.getOrderListInFile);
+router.post("/orders", middleware, controller.createOrder);
 
 module.exports = router;

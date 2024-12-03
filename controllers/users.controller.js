@@ -21,6 +21,11 @@ const Solutions = require("../models/Solutions");
 const LikedProducts = require("../models/LikedProducts");
 const Collections = require("../models/Collections");
 const Colors = require("../models/Colors");
+const axios = require("axios");
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
+const sharp = require("sharp");
+const Orders = require("../models/Orders");
 
 exports.register = async (req, res) => {
 	try {
@@ -661,20 +666,36 @@ exports.getPopulars = async (req, res) => {
 			InnerCategory.find({"popular.is_popular": true}).lean(),
 		]);
 
-		// Merge results into one array
-		let allPopulars = [...categories, ...subcategories, ...innerCategories];
+		// Add type and relationship fields to each item
+		const categorizedData = [
+			...categories.map((item) => ({
+				...item,
+				type: "category",
+			})),
+			...subcategories.map((item) => ({
+				...item,
+				type: "subcategory",
+				category: item.category, // Add category ID
+			})),
+			...innerCategories.map((item) => ({
+				...item,
+				type: "innercategory",
+				category: item.subcategory?.category || null, // Add connected category ID (if available)
+				subcategory: item.subcategory, // Add subcategory ID
+			})),
+		];
 
 		// Sort by createdAt in descending order
-		allPopulars.sort((a, b) => b.createdAt - a.createdAt);
+		categorizedData.sort((a, b) => b.createdAt - a.createdAt);
 
 		// Modify the response for the specified language
-		allPopulars = allPopulars.map((item) =>
+		const localizedData = categorizedData.map((item) =>
 			modifyResponseByLang(item, lang, ["name", "description"]),
 		);
 
 		// Pagination
-		const total = allPopulars.length;
-		const paginatedData = allPopulars.slice((page - 1) * limit, page * limit);
+		const total = localizedData.length;
+		const paginatedData = localizedData.slice((page - 1) * limit, page * limit);
 
 		// Prepare the paginated response
 		const response = paginate(
@@ -695,6 +716,7 @@ exports.getPopulars = async (req, res) => {
 		});
 	}
 };
+
 exports.getBrandById = async (req, res) => {
 	try {
 		const {lang} = req.query;
@@ -1396,6 +1418,392 @@ exports.getMaxBalance = async (req, res) => {
 		});
 	} catch (error) {
 		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+function numberFormat(number) {
+	return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+exports.getOrderListInFile = async (req, res) => {
+	try {
+		// Extract products from request body
+		const {products} = req.body;
+
+		// Fetch products from the database based on IDs
+		const productIds = products.map((item) => item.id);
+		const dbProducts = await Products.find({_id: {$in: productIds}});
+
+		if (!dbProducts.length) {
+			return res.status(404).json({
+				status: false,
+				message: "No products found.",
+			});
+		}
+
+		// Process each product
+		const tableData = products.map((item) => {
+			const product = dbProducts.find(
+				(p) => p._id.toString() === item.id.toString(),
+			);
+
+			return {
+				photo: product.photo_urls[0]?.url || "", // Use the first photo URL
+				name: product.name_ru || "", // Use the name in Russian
+				quantity: item.quantity || 0,
+				salePrice: product.sale.is_sale ? product.sale.price : "", // Sale price if on sale
+				notSalePrice: !product.sale.is_sale ? product.price : "", // Regular price if not on sale
+				price: product.sale.is_sale ? product.sale.price : product.price, // Actual price
+				total:
+					item.quantity *
+					(product.sale.is_sale ? product.sale.price : product.price), // Total cost
+				deliveryDay: product.delivery.day || 0, // Delivery day
+			};
+		});
+
+		// Calculate totals
+		const totalQuantity = tableData.reduce(
+			(sum, item) => sum + item.quantity,
+			0,
+		);
+		const totalAmount = tableData.reduce((sum, item) => sum + item.total, 0);
+
+		// Generate the PDF
+		const doc = new PDFDocument();
+		const pdfPath = "order_list.pdf";
+		doc.registerFont("Roboto", "fonts/Roboto-Black.ttf");
+		doc.font("Roboto");
+
+		// Save the PDF to a file
+		doc.pipe(fs.createWriteStream(pdfPath));
+
+		// Title
+		doc.fontSize(8).text("Список продутов", {align: "center"});
+		doc.moveDown();
+
+		// Table headers
+		const headers = [
+			"Фото",
+			"Имя",
+			"Количество",
+			"Цена со скидкой",
+			"Цена без скидки",
+			"Цена",
+			"Доставка",
+		];
+		const startX = 0;
+		const startY = 100;
+		const columnWidths = [100, 80, 80, 80, 80, 80, 80];
+		let currentY = startY;
+
+		// Draw headers
+		headers.forEach((header, index) => {
+			doc.text(
+				header,
+				startX + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
+				currentY,
+				{
+					width: columnWidths[index],
+					align: "center",
+				},
+			);
+		});
+		currentY += 30; // Move down after the header
+
+		// Fetch and add table rows
+		for (const row of tableData) {
+			const imageBuffer = row.photo ? await fetchImageBuffer(row.photo) : null;
+
+			// Add photo if available
+			if (imageBuffer) {
+				doc.image(imageBuffer, startX, currentY - 35, {
+					width: columnWidths[0],
+					height: 100,
+				});
+			}
+
+			// Add other fields (name, quantity, prices, etc.)
+			doc.text(row.name, startX + columnWidths[0], currentY, {
+				width: columnWidths[1],
+				align: "left",
+			});
+			doc.text(
+				numberFormat(row.quantity),
+				startX + columnWidths[0] + columnWidths[1],
+				currentY,
+				{
+					width: columnWidths[2],
+					align: "center",
+				},
+			);
+			doc.text(
+				row.salePrice ? `${numberFormat(row.salePrice)} сум` : "-",
+				startX + columnWidths[0] + columnWidths[1] + columnWidths[2],
+				currentY,
+				{
+					width: columnWidths[3],
+					align: "center",
+				},
+			);
+			doc.text(
+				row.notSalePrice ? `${numberFormat(row.notSalePrice)} сум` : "-",
+				startX +
+					columnWidths[0] +
+					columnWidths[1] +
+					columnWidths[2] +
+					columnWidths[3],
+				currentY,
+				{
+					width: columnWidths[4],
+					align: "center",
+				},
+			);
+			doc.text(
+				`${numberFormat(row.total)} сум`,
+				startX +
+					columnWidths[0] +
+					columnWidths[1] +
+					columnWidths[2] +
+					columnWidths[3] +
+					columnWidths[4],
+				currentY,
+				{
+					width: columnWidths[5],
+					align: "center",
+				},
+			);
+			doc.text(
+				row.deliveryDay,
+				startX +
+					columnWidths[0] +
+					columnWidths[1] +
+					columnWidths[2] +
+					columnWidths[3] +
+					columnWidths[4] +
+					columnWidths[5],
+				currentY,
+				{
+					width: columnWidths[6],
+					align: "center",
+				},
+			);
+
+			currentY += 70; // Move down after each row
+		}
+
+		doc.moveDown();
+		doc
+			.fontSize(10)
+			.text(`Общее количество продуктов: ${totalQuantity}`, 20, currentY - 5, {
+				width: 200,
+				align: "left",
+			});
+		doc.moveDown();
+		doc.fontSize(10).text(`Общая сумма: ${numberFormat(totalAmount)} сум`, {
+			width: 200,
+			align: "left",
+		});
+
+		doc.end();
+
+		const filePath = path.join(__dirname, "..", pdfPath); // Adjust the path to your file
+		return res.sendFile(filePath, (err) => {
+			if (err) {
+				console.error("Error sending file:", err);
+				res.status(500).send("Error sending file");
+			}
+		});
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+
+// Helper to fetch and convert image
+const fetchImageBuffer = async (url) => {
+	try {
+		const response = await axios.get(url, {responseType: "arraybuffer"});
+		const webpBuffer = Buffer.from(response.data, "binary");
+
+		// Convert WebP to PNG
+		return await sharp(webpBuffer).png().toBuffer();
+	} catch (err) {
+		console.error("Error fetching or converting image:", err);
+		return null;
+	}
+};
+exports.createOrder = async (req, res) => {
+	try {
+		const newOrder = new Orders({
+			user: req.user._id,
+			buyer: {
+				project_name: req.body.buyer.project_name,
+				name: req.body.buyer.name,
+				surname: req.body.buyer.surname,
+				phone_number: req.body.buyer.phone_number,
+				email: req.body.buyer.email,
+			},
+			communication: {
+				full_name: req.body.communication.full_name,
+				email: req.body.communication.email,
+				phone_number: req.body.communication.phone_number,
+				comment: req.body.communication.comment,
+			},
+			delivery: {
+				type: req.body.delivery.type,
+				address: req.body.delivery.address,
+				kv: req.body.delivery.kv,
+				pd: req.body.delivery.pd,
+				is_private_house: req.body.delivery.is_private_house,
+			},
+			pay: {
+				type: req.body.pay.type,
+			},
+			products: req.body.products,
+		});
+		await newOrder.save();
+		if (req.body.pay.type == "card") {
+			let totalAmount = 0;
+			const validProducts = [];
+
+			for (const product of newOrder.products) {
+				const productDoc = await Products.findById(product.product);
+				if (productDoc) {
+					let productQuantity = product.quantity;
+
+					// Check if the requested quantity is higher than available stock
+					if (productQuantity > productDoc.quantity) {
+						productQuantity = productDoc.quantity;
+					}
+
+					const price = productDoc.sale.isSale
+						? productDoc.sale.price
+						: productDoc.price;
+					const subtotal = price * productQuantity;
+					totalAmount += subtotal;
+
+					// Update product details with adjusted quantity and prices
+					validProducts.push({
+						product: product.product,
+						quantity: productQuantity,
+						price: price,
+						initial_price: productDoc.initial_price || 0,
+					});
+				}
+			}
+
+			// Update the order with valid products only
+			newOrder.products = validProducts;
+
+			// If no valid products remain in the order, return an error response
+			if (validProducts.length === 0) {
+				return res.status(400).json({error: "No valid products in order."});
+			}
+			const {token} = await getMulticardToken();
+			const agent = new https.Agent({
+				rejectUnauthorized: false,
+			});
+			const response = await axios.post(
+				process.env.MULTICARD_CONNECTION_API + "/payment",
+				{
+					card: {
+						token: req.body.pay.card.token,
+					},
+					amount: totalAmount * 100,
+					store_id: process.env.MULTICARD_STORE_ID,
+					invoice_id: newOrder._id,
+					details: "",
+				},
+				{
+					httpsAgent: agent,
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				},
+			);
+			newOrder.pay.card.card_pan = response.data.data.card_pan;
+			newOrder.pay.card.uuid = response.data.data.uuid;
+			newOrder.pay.card.payment_amount = response.data.data.payment_amount;
+			newOrder.pay.card.total_amount = response.data.data.total_amount;
+			newOrder.pay.card.commission_amount =
+				response.data.data.commission_amount;
+			await newOrder.save();
+
+			return res.json({
+				success: true,
+				data: newOrder,
+			});
+		}
+		if (req.body.pay.type == "uzum") {
+			newOrder.pay.order_url =
+				"https://www.apelsin.uz/open-service?serviceId=498616071&order_id=" +
+				newOrder.order_id;
+			let totalAmount = 0;
+			for (const product of newOrder.products) {
+				const productDoc = await Products.findById(product.product);
+				const price = productDoc.sale.isSale
+					? productDoc.sale.price
+					: productDoc.price;
+				const subtotal = price * product.quantity;
+				totalAmount += subtotal;
+				product.price = price;
+				product.initial_price = productDoc.initial_price || 0;
+			}
+		}
+		if (req.body.pay.type == "payme") {
+			let totalAmount = 0;
+			for (const product of newOrder.products) {
+				const productDoc = await Products.findById(product.product);
+				if (!productDoc) {
+					return res.json({error: "Product not found"});
+				}
+				const price = productDoc.sale.is_sale
+					? productDoc.sale.price
+					: productDoc.price;
+				const subtotal = price * product.quantity;
+				totalAmount += subtotal;
+				product.price = price;
+				// product.initial_price = productDoc.initial_price || 0;
+			}
+			const stringToEncode = `m=65e2f91cf4193eeca0afd4b0;ac.order_id=${
+				newOrder.order_id
+			};a=${totalAmount * 100}`;
+
+			const base64EncodedString =
+				Buffer.from(stringToEncode).toString("base64");
+			newOrder.pay.order_url =
+				"https://checkout.paycom.uz/" + base64EncodedString;
+		}
+		if (req.body.pay.type == "click") {
+			let totalAmount = 0;
+			for (const product of newOrder.products) {
+				const productDoc = await Products.findById(product.product);
+				if (!productDoc) {
+					return res.json({error: "Product not found"});
+				}
+				const price = productDoc.sale.isSale
+					? productDoc.sale.price
+					: productDoc.price;
+				const subtotal = price * product.quantity;
+				totalAmount += subtotal;
+				product.price = price;
+				product.initial_price = productDoc.initial_price || 0;
+			}
+			newOrder.pay.order_url = `https://my.click.uz/services/pay?service_id=33923&merchant_id=25959&amount=${totalAmount}&transaction_param=${newOrder.order_id}`;
+		}
+		await newOrder.save();
+
+		return res.json({
+			status: "success",
+			data: newOrder,
+		});
+	} catch (error) {
+		console.error(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,

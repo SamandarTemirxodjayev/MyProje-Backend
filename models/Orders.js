@@ -1,4 +1,4 @@
-const {Schema, model} = require("mongoose");
+const {Schema, model, Types} = require("mongoose");
 const {AutoIncrement} = require("../utils/helpers");
 
 const schema = new Schema(
@@ -35,11 +35,13 @@ const schema = new Schema(
 			comment: String,
 		},
 		delivery: {
-			type: String,
 			address: String,
 			kv: String,
 			pd: String,
 			is_private_house: Boolean,
+			type: {
+				type: String,
+			},
 		},
 		status: {
 			type: Number,
