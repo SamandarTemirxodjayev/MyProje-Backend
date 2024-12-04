@@ -7,8 +7,6 @@ const fs = require("fs");
 let error_message;
 server.addMethod("CheckPerformTransaction", async (params) => {
 	let order = await Orders.findById(parseInt(params.account.order_id));
-	console.log(order);
-	console.log(params);
 	if (!order) {
 		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-31061, "Order not found");
@@ -89,7 +87,7 @@ server.addMethod("CancelTransaction", async (params) => {
 	}
 
 	return {
-		transaction: order._id,
+		transaction: order._id.toString(),
 		cancel_time: order.pay.payme.cancel_time,
 		state: order.pay.payme.state,
 	};
@@ -197,7 +195,7 @@ server.addMethod("CheckTransaction", async (params) => {
 		create_time: order.pay.payme.create_time,
 		perform_time: order.pay.payme.perform_time,
 		cancel_time: order.pay.payme.cancel_time,
-		transaction: order._id,
+		transaction: order._id.toString(),
 		state: order.pay.payme.state,
 		reason: order.pay.payme.reason,
 	};
