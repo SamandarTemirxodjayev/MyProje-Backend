@@ -180,7 +180,7 @@ server.addMethod("CreateTransaction", async (params) => {
 
 	return {
 		create_time: params.time,
-		transaction: order._id,
+		transaction: order._id.toString(),
 		state: order.pay.payme.state,
 	};
 });
