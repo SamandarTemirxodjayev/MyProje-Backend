@@ -139,9 +139,9 @@ server.addMethod("PerformTransaction", async (params) => {
 });
 
 server.addMethod("CreateTransaction", async (params) => {
-	const order = await Orders.findOne({
-		_id: parseInt(params.account.order_id),
-	});
+	const order = await Orders.findById(parseInt(params.account.order_id));
+	console.log(params);
+	console.log(order);
 	if (!order) {
 		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-31060, "Order not found");
