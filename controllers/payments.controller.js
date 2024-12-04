@@ -6,7 +6,7 @@ const server = new JSONRPCServer();
 const fs = require("fs");
 let error_message;
 server.addMethod("CheckPerformTransaction", async (params) => {
-	let order = await Orders.findById(params.account.order_id);
+	let order = await Orders.findById(parseInt(params.account.order_id));
 	if (!order) {
 		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-31061, "Order not found");
@@ -138,7 +138,7 @@ server.addMethod("PerformTransaction", async (params) => {
 
 server.addMethod("CreateTransaction", async (params) => {
 	const order = await Orders.findOne({
-		_id: params.account.order_id,
+		_id: parseInt(params.account.order_id),
 	});
 	if (!order) {
 		error_message = "Buyurtma Topilmadi";
