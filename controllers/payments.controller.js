@@ -100,7 +100,7 @@ server.addMethod("PerformTransaction", async (params) => {
 		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-32504, "Order not found");
 	}
-	if (order.pay.status == "payed" || order.pay.status == "cancelled") {
+	if (order.pay.status == "cancelled") {
 		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-31061, "Order not found");
 	}
