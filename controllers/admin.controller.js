@@ -18,6 +18,7 @@ const {modifyResponseByLang, paginate} = require("../utils/helpers");
 const Collections = require("../models/Collections");
 const Solutions = require("../models/Solutions");
 const Colors = require("../models/Colors");
+const Orders = require("../models/Orders");
 
 exports.register = async (req, res) => {
 	try {
@@ -2555,6 +2556,62 @@ exports.deleteColorById = async (req, res) => {
 			status: true,
 			message: "success",
 			data: color,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllOrders = async (req, res) => {
+	try {
+		let {page = 1, limit = 10} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let orders = await Orders.find()
+			.skip(skip)
+			.limit(limit)
+			.populate("user")
+			.populate("products.product");
+		const total = await Orders.countDocuments();
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			orders,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getOrderById = async (req, res) => {
+	try {
+		let order = await Orders.findById(req.params.id)
+			.populate("user")
+			.populate("products.product");
+		if (!order) {
+			return res.status(400).json({
+				status: false,
+				message: "order not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: order,
 		});
 	} catch (error) {
 		console.log(error);

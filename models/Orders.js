@@ -9,6 +9,7 @@ const schema = new Schema(
 		user: {
 			type: Number,
 			required: true,
+			ref: "users",
 		},
 		products: [
 			{
@@ -19,6 +20,17 @@ const schema = new Schema(
 				quantity: Number,
 				price: Number,
 				initial_price: Number,
+				delivery: {
+					delivered: {
+						is_delivered: Boolean,
+						date: Number,
+					},
+					cancelled: {
+						is_cancelled: Boolean,
+						date: Number,
+						reason: String,
+					},
+				},
 			},
 		],
 		buyer: {

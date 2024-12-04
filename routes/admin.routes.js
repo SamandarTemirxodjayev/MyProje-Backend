@@ -131,4 +131,7 @@ router.get("/colors/:id", middleware, controller.getColorById);
 router.put("/colors/:id", middleware, controller.updateColorById);
 router.delete("/colors/:id", middleware, controller.deleteColorById);
 
+router.get("/orders", middleware, controller.getAllOrders);
+router.get("/orders/:id", middleware, controller.getOrderById);
+
 module.exports = router;
