@@ -132,7 +132,7 @@ server.addMethod("PerformTransaction", async (params) => {
 	}
 
 	return {
-		transaction: order._id,
+		transaction: order._id.toString(),
 		perform_time: order.pay.payme.perform_time,
 		state: order.pay.payme.state,
 	};
