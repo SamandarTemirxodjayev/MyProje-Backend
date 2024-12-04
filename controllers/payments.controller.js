@@ -37,8 +37,8 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 			title: productDoc.name_uz,
 			price: productDoc.sale.is_sale ? productDoc.sale.price : productDoc.price,
 			count: product.quantity,
-			code: productDoc.MXIK.code,
-			package_code: productDoc.MXIK.package_code,
+			code: "06910001005001001",
+			package_code: "1284677",
 			vat_percent: 0,
 		});
 	}
