@@ -7,6 +7,8 @@ const fs = require("fs");
 let error_message;
 server.addMethod("CheckPerformTransaction", async (params) => {
 	let order = await Orders.findById(parseInt(params.account.order_id));
+	console.log(order);
+	console.log(params);
 	if (!order) {
 		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-31061, "Order not found");
