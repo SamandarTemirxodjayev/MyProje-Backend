@@ -56,5 +56,6 @@ router.get("/max-balance", middleware, controller.getMaxBalance);
 router.post("/order-file", middleware, controller.getOrderListInFile);
 router.post("/orders", middleware, controller.createOrder);
 router.get("/compare-products", middleware, controller.getCompareProducts);
+router.get("/comments", middleware, controller.getAllComments);
 
 module.exports = router;

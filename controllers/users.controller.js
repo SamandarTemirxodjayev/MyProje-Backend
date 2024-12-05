@@ -1919,3 +1919,36 @@ exports.getCompareProducts = async (req, res) => {
 		});
 	}
 };
+exports.getAllComments = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let comments = await Comments.find()
+			.skip(skip)
+			.limit(limit)
+			.populate("user")
+			.populate("product");
+		const total = await Comments.countDocuments();
+
+		comments = modifyResponseByLang(comments, lang, ["product.name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			comments,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};

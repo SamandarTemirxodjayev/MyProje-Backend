@@ -24,6 +24,9 @@ const usersSchema = new Schema(
 		resume_url: {
 			type: String,
 		},
+		photo_url: {
+			type: String,
+		},
 		gender: {
 			type: String,
 			enum: ["male", "female"],
@@ -58,6 +61,12 @@ const usersSchema = new Schema(
 	},
 	{
 		versionKey: false,
+		toJSON: {
+			transform: function (doc, ret) {
+				delete ret.visitedRoutes; // Exclude visitedRoutes
+				return ret;
+			},
+		},
 	},
 );
 

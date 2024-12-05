@@ -131,6 +131,12 @@ router.get("/colors/:id", middleware, controller.getColorById);
 router.put("/colors/:id", middleware, controller.updateColorById);
 router.delete("/colors/:id", middleware, controller.deleteColorById);
 
+router.post("/comments", middleware, controller.createComment);
+router.get("/comments", middleware, controller.getAllComments);
+router.get("/comments/:id", middleware, controller.getCommentById);
+router.put("/comments/:id", middleware, controller.updateCommentById);
+router.delete("/comments/:id", middleware, controller.deleteCommentById);
+
 router.get("/orders", middleware, controller.getAllOrders);
 router.get("/orders/:id", middleware, controller.getOrderById);
 

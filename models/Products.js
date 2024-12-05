@@ -193,24 +193,6 @@ const productsSchema = new Schema(
 			type: Number,
 			default: 1,
 		},
-		comments: [
-			{
-				user: {
-					type: Number,
-					ref: "users",
-				},
-				star: {
-					type: Number,
-				},
-				text: {
-					type: String,
-				},
-				createdAt: {
-					type: Number,
-					default: new Date(),
-				},
-			},
-		],
 		status: {
 			type: Boolean,
 			default: false,

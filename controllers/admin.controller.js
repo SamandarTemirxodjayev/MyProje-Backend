@@ -19,6 +19,7 @@ const Collections = require("../models/Collections");
 const Solutions = require("../models/Solutions");
 const Colors = require("../models/Colors");
 const Orders = require("../models/Orders");
+const Comments = require("../models/Comments");
 
 exports.register = async (req, res) => {
 	try {
@@ -2556,6 +2557,131 @@ exports.deleteColorById = async (req, res) => {
 			status: true,
 			message: "success",
 			data: color,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createComment = async (req, res) => {
+	try {
+		const comment = await Comments.create(req.body);
+		await comment.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: comment,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllComments = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let comments = await Comments.find()
+			.skip(skip)
+			.limit(limit)
+			.populate("user")
+			.populate("product");
+		const total = await Comments.countDocuments();
+
+		comments = modifyResponseByLang(comments, lang, ["product.name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			comments,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getCommentById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let comment = await Comments.findById(req.params.id)
+			.populate("user")
+			.populate("product");
+		if (!comment) {
+			return res.status(400).json({
+				status: false,
+				message: "comment not found",
+				data: null,
+			});
+		}
+		comment = modifyResponseByLang(comment, lang, ["product.name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: comment,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateCommentById = async (req, res) => {
+	try {
+		const comments = await Comments.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!comments) {
+			return res.status(400).json({
+				status: false,
+				message: "comments not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: comments,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteCommentById = async (req, res) => {
+	try {
+		const comment = await Comments.findByIdAndDelete(req.params.id);
+		if (!comment) {
+			return res.status(400).json({
+				status: false,
+				message: "comment not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: comment,
 		});
 	} catch (error) {
 		console.log(error);
