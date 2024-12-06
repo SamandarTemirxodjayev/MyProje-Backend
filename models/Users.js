@@ -8,37 +8,45 @@ const usersSchema = new Schema(
 		},
 		name: {
 			type: String,
+			default: "",
 		},
 		surname: {
 			type: String,
+			default: "",
 		},
 		email: {
 			type: String,
 			unique: true,
+			default: "",
 		},
 		phone_number: {
 			type: String,
-
+			default: "",
 			unique: true,
 		},
 		resume_url: {
 			type: String,
+			default: "",
 		},
 		photo_url: {
 			type: String,
+			default: "https://cdn.myproje.uz/large/67529f70b63e267661939b25.webp",
 		},
 		gender: {
 			type: String,
 			enum: ["male", "female"],
+			default: "male",
 		},
 		password: {
 			type: String,
 		},
 		card_number: {
 			type: String,
+			default: "",
 		},
 		price: {
 			type: Number,
+			default: 0,
 		},
 		direction: {
 			type: Number,

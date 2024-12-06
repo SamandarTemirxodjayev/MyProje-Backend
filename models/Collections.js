@@ -19,13 +19,6 @@ const schema = new Schema(
 		title_en: {
 			type: String,
 		},
-		products: [
-			{
-				type: Number,
-				required: true,
-				ref: "products",
-			},
-		],
 		description: {
 			photo_url: {
 				type: String,

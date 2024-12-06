@@ -26,6 +26,7 @@ const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const sharp = require("sharp");
 const Orders = require("../models/Orders");
+const Comments = require("../models/Comments");
 
 exports.register = async (req, res) => {
 	try {
@@ -110,7 +111,7 @@ exports.getMe = async (req, res) => {
 	try {
 		const {lang} = req.query;
 		const user = await Users.findById(req.user._id).populate("direction");
-		let {password, ...result} = user._doc;
+		let {password, visitedRoutes, ...result} = user._doc;
 		result = modifyResponseByLang(result, lang, ["direction.name"]);
 		const filePath = path.join(__dirname, "../database", `information.json`);
 		let filehandle = await open(filePath, "r");
@@ -1921,17 +1922,17 @@ exports.getCompareProducts = async (req, res) => {
 };
 exports.getAllComments = async (req, res) => {
 	try {
-		let {page = 1, limit = 10, lang} = req.query;
+		let {page = 1, limit = 10, lang, filter = {}} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
-		let comments = await Comments.find()
+		let comments = await Comments.find({...filter})
 			.skip(skip)
 			.limit(limit)
 			.populate("user")
 			.populate("product");
-		const total = await Comments.countDocuments();
+		const total = await Comments.countDocuments({...filter});
 
 		comments = modifyResponseByLang(comments, lang, ["product.name"]);
 

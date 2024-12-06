@@ -20,6 +20,7 @@ const Solutions = require("../models/Solutions");
 const Colors = require("../models/Colors");
 const Orders = require("../models/Orders");
 const Comments = require("../models/Comments");
+const Infos = require("../models/Infos");
 
 exports.register = async (req, res) => {
 	try {
@@ -2738,6 +2739,118 @@ exports.getOrderById = async (req, res) => {
 			status: true,
 			message: "success",
 			data: order,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createInfo = async (req, res) => {
+	try {
+		const info = await Infos.create(req.body);
+		await info.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: info,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllInfos = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let info = await Infos.find().skip(skip).limit(limit);
+		const total = await Infos.countDocuments();
+
+		info = modifyResponseByLang(info, lang, ["name"]);
+
+		const response = paginate(page, limit, total, info, req.baseUrl, req.path);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getInfoById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let info = await Infos.findById(req.params.id);
+		if (!info) {
+			return res.status(400).json({
+				status: false,
+				message: "info not found",
+				data: null,
+			});
+		}
+		info = modifyResponseByLang(info, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: info,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateInfoById = async (req, res) => {
+	try {
+		const info = await Infos.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!info) {
+			return res.status(400).json({
+				status: false,
+				message: "info not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: info,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteInfoById = async (req, res) => {
+	try {
+		const info = await Infos.findByIdAndDelete(req.params.id);
+		if (!info) {
+			return res.status(400).json({
+				status: false,
+				message: "info not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: info,
 		});
 	} catch (error) {
 		console.log(error);

@@ -48,7 +48,8 @@ const productsSchema = new Schema(
 		information_uz: [
 			{
 				key: {
-					type: String,
+					type: Number,
+					ref: "infos",
 				},
 				value: {
 					type: String,
@@ -58,7 +59,8 @@ const productsSchema = new Schema(
 		information_ru: [
 			{
 				key: {
-					type: String,
+					type: Number,
+					ref: "infos",
 				},
 				value: {
 					type: String,
@@ -68,7 +70,8 @@ const productsSchema = new Schema(
 		information_en: [
 			{
 				key: {
-					type: String,
+					type: Number,
+					ref: "infos",
 				},
 				value: {
 					type: String,
@@ -162,6 +165,10 @@ const productsSchema = new Schema(
 		solution: {
 			type: Number,
 			ref: "solutions",
+		},
+		collection: {
+			type: Number,
+			ref: "collections",
 		},
 		delivery: {
 			day: {

@@ -137,6 +137,12 @@ router.get("/comments/:id", middleware, controller.getCommentById);
 router.put("/comments/:id", middleware, controller.updateCommentById);
 router.delete("/comments/:id", middleware, controller.deleteCommentById);
 
+router.post("/infos", middleware, controller.createInfo);
+router.get("/infos", middleware, controller.getAllInfos);
+router.get("/infos/:id", middleware, controller.getInfoById);
+router.put("/infos/:id", middleware, controller.updateInfoById);
+router.delete("/infos/:id", middleware, controller.deleteInfoById);
+
 router.get("/orders", middleware, controller.getAllOrders);
 router.get("/orders/:id", middleware, controller.getOrderById);
 
