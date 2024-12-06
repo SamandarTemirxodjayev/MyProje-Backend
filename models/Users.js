@@ -32,6 +32,9 @@ const usersSchema = new Schema(
 			type: String,
 			default: "https://cdn.myproje.uz/large/67529f70b63e267661939b25.webp",
 		},
+		birthday: {
+			type: Number,
+		},
 		gender: {
 			type: String,
 			enum: ["male", "female"],
