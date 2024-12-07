@@ -987,11 +987,6 @@ exports.getProducts = async (req, res) => {
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 		const sortOrder = order === "desc" ? -1 : 1;
-		// if (filter || filter.brands) {
-		// 	filter.brands = parseInt(filter.brands);
-		// }
-		console.log(filter);
-		// Add additional filters dynamically
 		if (delivery_day_gte || delivery_day_lte) {
 			filter["delivery.day"] = {};
 			if (delivery_day_gte)
@@ -1323,9 +1318,7 @@ exports.getinspirationById = async (req, res) => {
 	try {
 		let {lang} = req.query;
 
-		let inspiration = await Collections.findById(req.params.id).populate(
-			"products",
-		);
+		let inspiration = await Collections.findById(req.params.id);
 
 		if (!inspiration) {
 			return res.status(404).json({
