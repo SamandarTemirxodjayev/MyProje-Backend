@@ -42,9 +42,9 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 			title: productDoc.name_uz,
 			price: productDoc.sale.is_sale ? productDoc.sale.price : productDoc.price,
 			count: product.quantity,
-			code: "06910001005000000",
-			package_code: "1184760",
-			vat_percent: 0,
+			// code: "06910001005000000",
+			// package_code: "1184760",
+			vat_percent: 12,
 		});
 	}
 
@@ -65,7 +65,7 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 		allow: true,
 		detail: {
 			receipt_type: 0,
-			// items: receiptItems,
+			items: receiptItems,
 		},
 	};
 });
