@@ -36,7 +36,7 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 		totalAmount += subtotal;
 
 		// Add product bonus to the total bonus
-		totalBonusFromProducts += productDoc.bonus * product.quantity;
+		totalBonusFromProducts += productDoc.cashback * product.quantity;
 
 		receiptItems.push({
 			title: productDoc.name_uz,
@@ -159,6 +159,7 @@ server.addMethod("CreateTransaction", async (params) => {
 	}
 
 	let totalAmount = 0;
+	let totalBonusFromProducts = 0;
 	for (const product of order.products) {
 		const productDoc = await Products.findById(product.product);
 		if (!productDoc) {
@@ -171,17 +172,14 @@ server.addMethod("CreateTransaction", async (params) => {
 			: productDoc.price;
 		const subtotal = price * product.quantity;
 		totalAmount += subtotal;
+		totalBonusFromProducts += productDoc.cashback * product.quantity;
 	}
 
 	// Bonus calculation
-	let bonusAmount = 0;
-	const bonusPercentage = 5; // Example: 5% bonus
-	if (bonusPercentage > 0) {
-		bonusAmount = (totalAmount * bonusPercentage) / 100;
-	}
+	
 
 	// Add bonus to the totalAmount
-	const totalAmountWithBonus = totalAmount + bonusAmount;
+	const totalAmountWithBonus = totalAmount - (totalBonusFromProducts - order.bonus);
 
 	if (totalAmountWithBonus * 100 !== params.amount) {
 		error_message =

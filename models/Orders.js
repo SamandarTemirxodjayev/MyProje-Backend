@@ -122,6 +122,10 @@ const schema = new Schema(
 					type: Number,
 					default: 1,
 				},
+				bonus: {
+					type: Number,
+					default: 0,
+				},
 				reason: {
 					type: Number,
 					default: null,
