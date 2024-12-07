@@ -65,7 +65,7 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 		allow: true,
 		detail: {
 			receipt_type: 0,
-			items: receiptItems,
+			// items: receiptItems,
 		},
 	};
 });
