@@ -194,7 +194,7 @@ server.addMethod("CreateTransaction", async (params) => {
 	order.pay.payme.create_time = params.time;
 	order.pay.payme.id = params.id;
 	order.pay.payme.amount = params.amount;
-	order.pay.payme.total_amount = totalAmountWithBonus;
+	order.pay.payme.total_amount = (totalAmount - netBonus);
 	order.pay.payme.bonus = bonusAmount; // Store the bonus amount
 
 	await order.save();
