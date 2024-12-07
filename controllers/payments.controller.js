@@ -19,7 +19,9 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 
 	let totalAmount = 0;
 	let receiptItems = [];
+	let totalBonusFromProducts = 0;
 
+	// Calculate total bonus from products in the order
 	for (const product of order.products) {
 		const productDoc = await Products.findById(product.product);
 		if (!productDoc) {
@@ -33,6 +35,9 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 		const subtotal = price * product.quantity;
 		totalAmount += subtotal;
 
+		// Add product bonus to the total bonus
+		totalBonusFromProducts += productDoc.bonus * product.quantity;
+
 		receiptItems.push({
 			title: productDoc.name_uz,
 			price: productDoc.sale.is_sale ? productDoc.sale.price : productDoc.price,
@@ -43,6 +48,10 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 		});
 	}
 
+	// Subtract the order bonus from the total bonus
+	let netBonus = totalBonusFromProducts - order.bonus;
+
+	// Calculate the adjusted total amount by subtracting the net bonus from totalAmount
 	if (totalAmount * 100 !== params.amount) {
 		error_message =
 			"Buyurtma Summasida Xatolik. Buyurtmani To'liq summasini kiriting";
@@ -163,16 +172,29 @@ server.addMethod("CreateTransaction", async (params) => {
 		const subtotal = price * product.quantity;
 		totalAmount += subtotal;
 	}
-	if (totalAmount * 100 !== params.amount) {
+
+	// Bonus calculation
+	let bonusAmount = 0;
+	const bonusPercentage = 5; // Example: 5% bonus
+	if (bonusPercentage > 0) {
+		bonusAmount = (totalAmount * bonusPercentage) / 100;
+	}
+
+	// Add bonus to the totalAmount
+	const totalAmountWithBonus = totalAmount + bonusAmount;
+
+	if (totalAmountWithBonus * 100 !== params.amount) {
 		error_message =
 			"Buyurtma Summasida Xatolik. Buyurtmani To'liq summasini kiriting";
 		throw new RpcError(-31001, "Incorrect total amount");
 	}
 
+	// Update the payment details including the bonus
 	order.pay.payme.create_time = params.time;
 	order.pay.payme.id = params.id;
 	order.pay.payme.amount = params.amount;
-	order.pay.payme.total_amount = totalAmount;
+	order.pay.payme.total_amount = totalAmountWithBonus;
+	order.pay.payme.bonus = bonusAmount; // Store the bonus amount
 
 	await order.save();
 
@@ -180,9 +202,9 @@ server.addMethod("CreateTransaction", async (params) => {
 		create_time: params.time,
 		transaction: order._id.toString(),
 		state: order.pay.payme.state,
+		bonus: bonusAmount, // Return bonus information in the response
 	};
 });
-
 server.addMethod("CheckTransaction", async (params) => {
 	const order = await Orders.findOne({
 		"pay.payme.id": params.id,

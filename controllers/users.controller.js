@@ -1424,7 +1424,7 @@ function numberFormat(number) {
 exports.getOrderListInFile = async (req, res) => {
 	try {
 		// Extract products from request body
-		const {products} = req.body;
+		const {products, sale = 0} = req.body;
 
 		// Fetch products from the database based on IDs
 		const productIds = products.map((item) => item.id);
@@ -1599,6 +1599,16 @@ exports.getOrderListInFile = async (req, res) => {
 			width: 200,
 			align: "left",
 		});
+		doc.moveDown();
+		doc.fontSize(10).text(`Скидка: ${numberFormat(sale)} сум`, {
+			width: 200,
+			align: "left",
+		});
+		doc.moveDown();
+		doc.fontSize(10).text(`Общая сумма со скидкой: ${numberFormat(totalAmount-sale)} сум`, {
+			width: 200,
+			align: "left",
+		});
 
 		doc.end();
 
@@ -1635,6 +1645,7 @@ exports.createOrder = async (req, res) => {
 	try {
 		const newOrder = new Orders({
 			user: req.user._id,
+			bonus: req.body.bonus,
 			buyer: {
 				project_name: req.body.buyer.project_name,
 				name: req.body.buyer.name,

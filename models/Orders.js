@@ -33,6 +33,10 @@ const schema = new Schema(
 				},
 			},
 		],
+		bonus: {
+			type: Number,
+			default: 0,
+		},
 		buyer: {
 			project_name: String,
 			name: String,
