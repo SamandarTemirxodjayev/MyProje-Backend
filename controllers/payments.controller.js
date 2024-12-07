@@ -50,6 +50,9 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 
 	// Subtract the order bonus from the total bonus
 	let netBonus = totalBonusFromProducts - order.bonus;
+	console.log(totalBonusFromProducts);
+	console.log(order.bonus);
+
 
 	// Calculate the adjusted total amount by subtracting the net bonus from totalAmount
 	if ((totalAmount - netBonus) * 100 !== params.amount) {
