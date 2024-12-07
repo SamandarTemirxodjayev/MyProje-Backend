@@ -175,15 +175,16 @@ server.addMethod("CreateTransaction", async (params) => {
 			: productDoc.price;
 		const subtotal = price * product.quantity;
 		totalAmount += subtotal;
+		totalBonusFromProducts += productDoc.cashback * product.quantity;
 	}
 
 	// Bonus calculation
 	
 
 	// Add bonus to the totalAmoun
-	const totalAmountWithBonus = totalAmount - order.bonus;
+	let netBonus = totalBonusFromProducts - order.bonus;
 
-	if (totalAmountWithBonus * 100 !== params.amount) {
+	if ((totalAmount - netBonus) * 100 !== params.amount) {
 		error_message =
 			"Buyurtma Summasida Xatolik. Buyurtmani To'liq summasini kiriting";
 		throw new RpcError(-31001, "Incorrect total amount");
