@@ -195,7 +195,7 @@ server.addMethod("CreateTransaction", async (params) => {
 	order.pay.payme.id = params.id;
 	order.pay.payme.amount = params.amount;
 	order.pay.payme.total_amount = (totalAmount - netBonus);
-	order.pay.payme.bonus = bonusAmount; // Store the bonus amount
+	order.pay.payme.bonus = order.bonus; // Store the bonus amount
 
 	await order.save();
 
@@ -203,7 +203,6 @@ server.addMethod("CreateTransaction", async (params) => {
 		create_time: params.time,
 		transaction: order._id.toString(),
 		state: order.pay.payme.state,
-		bonus: bonusAmount, // Return bonus information in the response
 	};
 });
 server.addMethod("CheckTransaction", async (params) => {
