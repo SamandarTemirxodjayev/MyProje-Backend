@@ -53,7 +53,6 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 	console.log(totalBonusFromProducts);
 	console.log(order.bonus);
 
-
 	// Calculate the adjusted total amount by subtracting the net bonus from totalAmount
 	if ((totalAmount - netBonus) * 100 !== params.amount) {
 		error_message =
@@ -63,10 +62,10 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 
 	return {
 		allow: true,
-		detail: {
-			receipt_type: 0,
-			items: receiptItems,
-		},
+		// detail: {
+		// 	receipt_type: 0,
+		// 	items: receiptItems,
+		// },
 	};
 });
 
@@ -179,7 +178,6 @@ server.addMethod("CreateTransaction", async (params) => {
 	}
 
 	// Bonus calculation
-	
 
 	// Add bonus to the totalAmoun
 	let netBonus = totalBonusFromProducts - order.bonus;
@@ -194,7 +192,7 @@ server.addMethod("CreateTransaction", async (params) => {
 	order.pay.payme.create_time = params.time;
 	order.pay.payme.id = params.id;
 	order.pay.payme.amount = params.amount;
-	order.pay.payme.total_amount = (totalAmount - netBonus);
+	order.pay.payme.total_amount = totalAmount - netBonus;
 	order.pay.payme.bonus = order.bonus; // Store the bonus amount
 
 	await order.save();
