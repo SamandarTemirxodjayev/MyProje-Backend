@@ -1042,6 +1042,10 @@ exports.getProducts = async (req, res) => {
 			.populate("innercategory")
 			.populate("brands")
 			.populate("photo_urls.color")
+			.populate("collection")
+			.populate("information_uz.key")
+			.populate("information_ru.key")
+			.populate("information_en.key")
 			.populate("solution");
 
 		// Apply sorting
@@ -1072,9 +1076,10 @@ exports.getProducts = async (req, res) => {
 				"information",
 				"description",
 				"innercategory.name",
+				"collection.name",
 				"subcategory.name",
-				"category.name",
 				"photo_urls.color.name",
+				"category.name",
 			]);
 
 			modifiedProduct.liked = likedProductIds.includes(product._id);
