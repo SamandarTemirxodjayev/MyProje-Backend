@@ -90,8 +90,14 @@ server.addMethod("CancelTransaction", async (params) => {
 	}
 	if (order.pay.payme.cancel_time == 0) {
 		order.pay.payme.cancel_time = +new Date();
-		if (order.pay.payme.state == 2) order.pay.payme.state = -2;
-		if (order.pay.payme.state == 1) order.pay.payme.state = -1;
+		if (order.pay.payme.state == 2) {
+			order.pay.payme.state = -2;
+			order.status = -1;
+		}
+		if (order.pay.payme.state == 1) {
+			order.pay.payme.state = -1;
+			order.status = -9;
+		}
 		order.pay.status = "canceled";
 		order.pay.payme.reason = params.reason;
 		await order.save();
@@ -122,6 +128,7 @@ server.addMethod("PerformTransaction", async (params) => {
 		order.pay.status = "payed";
 		order.pay.pay_date = new Date().toISOString();
 		order.pay.type = "payme";
+		order.status = 1;
 		let totalAmount = 0;
 		for (const product of order.products) {
 			const productDoc = await Products.findById(product.product);

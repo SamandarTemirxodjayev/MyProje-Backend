@@ -966,7 +966,7 @@ exports.getProducts = async (req, res) => {
 		let {
 			page = 1,
 			limit = 10,
-			filter = {}, // Default to an empty object
+			filter = {},
 			sort,
 			order,
 			lang,
@@ -987,6 +987,8 @@ exports.getProducts = async (req, res) => {
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 		const sortOrder = order === "desc" ? -1 : 1;
+
+		// Handle delivery day filter
 		if (delivery_day_gte || delivery_day_lte) {
 			filter["delivery.day"] = {};
 			if (delivery_day_gte)
@@ -995,11 +997,14 @@ exports.getProducts = async (req, res) => {
 				filter["delivery.day"].$lte = parseInt(delivery_day_lte);
 		}
 
+		// Handle price filter
 		if (amount_gte || amount_lte) {
 			filter["price"] = {};
 			if (amount_gte) filter["price"].$gte = parseInt(amount_gte);
 			if (amount_lte) filter["price"].$lte = parseInt(amount_lte);
 		}
+
+		// Handle dimension filters
 		if (x_gte || x_lte || y_gte || y_lte || z_gte || z_lte) {
 			if (x_gte || x_lte) {
 				filter["x"] = {};
@@ -1024,6 +1029,7 @@ exports.getProducts = async (req, res) => {
 			}
 		}
 
+		// Handle color filter
 		if (color) {
 			filter["photo_urls.color"] = color;
 		}
@@ -1038,6 +1044,7 @@ exports.getProducts = async (req, res) => {
 			.populate("photo_urls.color")
 			.populate("solution");
 
+		// Apply sorting
 		if (sort === "sales") {
 			productQuery = productQuery.sort({sales: sortOrder});
 		} else if (sort === "new") {
@@ -1050,6 +1057,7 @@ exports.getProducts = async (req, res) => {
 			productQuery = productQuery.sort({sales: 1});
 		}
 
+		// Get liked products
 		const likedProducts = await LikedProducts.find({
 			user_id: req.user._id,
 		}).select("product_id");
@@ -1057,6 +1065,7 @@ exports.getProducts = async (req, res) => {
 
 		let products = await productQuery;
 
+		// Process products with language and liked status
 		products = products.map((product) => {
 			const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
 				"name",
@@ -1065,10 +1074,10 @@ exports.getProducts = async (req, res) => {
 				"innercategory.name",
 				"subcategory.name",
 				"category.name",
+				"photo_urls.color.name",
 			]);
 
 			modifiedProduct.liked = likedProductIds.includes(product._id);
-
 			return modifiedProduct;
 		});
 
@@ -1605,10 +1614,12 @@ exports.getOrderListInFile = async (req, res) => {
 			align: "left",
 		});
 		doc.moveDown();
-		doc.fontSize(10).text(`Общая сумма со скидкой: ${numberFormat(totalAmount-sale)} сум`, {
-			width: 200,
-			align: "left",
-		});
+		doc
+			.fontSize(10)
+			.text(`Общая сумма со скидкой: ${numberFormat(totalAmount - sale)} сум`, {
+				width: 200,
+				align: "left",
+			});
 
 		doc.end();
 
@@ -1815,6 +1826,71 @@ exports.createOrder = async (req, res) => {
 		});
 	}
 };
+exports.getAllOrders = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, filter = {}, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let orders = await Orders.find({...filter, user: req.user._id})
+			.skip(skip)
+			.limit(limit)
+			.populate("user")
+			.populate("products.product")
+			.populate("products.color");
+		const total = await Orders.countDocuments({...filter, user: req.user._id});
+		orders = modifyResponseByLang(orders, lang, [
+			"products.product.name",
+			"products.product.description",
+			"products.product.information",
+			"products.color.name",
+		]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			orders,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getOrderById = async (req, res) => {
+	try {
+		let {lang} = req.query;
+		let order = await Orders.findById(req.params.id)
+			.populate("user")
+			.populate("products.product")
+			.populate("products.color");
+		order = modifyResponseByLang(order, lang, [
+			"products.product.name",
+			"products.product.description",
+			"products.product.information",
+			"products.color.name",
+		]);
+
+		return res.json({
+			status: true,
+			message: "success",
+			data: order,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getCompareProducts = async (req, res) => {
 	try {
 		const {lang, category, subcategory, innercategory, limit = 10} = req.query;
@@ -1934,8 +2010,7 @@ exports.getAllComments = async (req, res) => {
 		let comments = await Comments.find({...filter})
 			.skip(skip)
 			.limit(limit)
-			.populate("user")
-			.populate("product");
+			.populate("user");
 		const total = await Comments.countDocuments({...filter});
 
 		comments = modifyResponseByLang(comments, lang, ["product.name"]);
@@ -1949,6 +2024,26 @@ exports.getAllComments = async (req, res) => {
 			req.path,
 		);
 		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createCommentForProduct = async (req, res) => {
+	try {
+		const comment = await Comments.create({
+			...req.body,
+			user: req.user._id,
+		});
+		await comment.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: comment,
+		});
 	} catch (error) {
 		console.log(error);
 		return res.status(500).json({

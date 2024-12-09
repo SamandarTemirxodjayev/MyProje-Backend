@@ -75,6 +75,7 @@ const usersSchema = new Schema(
 		toJSON: {
 			transform: function (doc, ret) {
 				delete ret.visitedRoutes; // Exclude visitedRoutes
+				delete ret.password; // Exclude visitedRoutes
 				return ret;
 			},
 		},

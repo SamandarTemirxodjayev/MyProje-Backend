@@ -2694,17 +2694,24 @@ exports.deleteCommentById = async (req, res) => {
 };
 exports.getAllOrders = async (req, res) => {
 	try {
-		let {page = 1, limit = 10} = req.query;
+		let {page = 1, limit = 10, filter = {}, lang} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
-		let orders = await Orders.find()
+		let orders = await Orders.find({...filter})
 			.skip(skip)
 			.limit(limit)
 			.populate("user")
-			.populate("products.product");
-		const total = await Orders.countDocuments();
+			.populate("products.product")
+			.populate("products.color");
+		const total = await Orders.countDocuments({...filter});
+		orders = modifyResponseByLang(orders, lang, [
+			"products.product.name",
+			"products.product.description",
+			"products.product.information",
+			"products.color.name",
+		]);
 
 		const response = paginate(
 			page,
@@ -2725,9 +2732,11 @@ exports.getAllOrders = async (req, res) => {
 };
 exports.getOrderById = async (req, res) => {
 	try {
+		const {lang} = req.query;
 		let order = await Orders.findById(req.params.id)
 			.populate("user")
-			.populate("products.product");
+			.populate("products.product")
+			.populate("products.color");
 		if (!order) {
 			return res.status(400).json({
 				status: false,
@@ -2735,6 +2744,13 @@ exports.getOrderById = async (req, res) => {
 				data: null,
 			});
 		}
+		order = modifyResponseByLang(order, lang, [
+			"products.product.name",
+			"products.product.description",
+			"products.product.information",
+			"products.color.name",
+		]);
+
 		return res.json({
 			status: true,
 			message: "success",
@@ -2858,5 +2874,104 @@ exports.deleteInfoById = async (req, res) => {
 			status: false,
 			message: error.message,
 		});
+	}
+};
+exports.submitProductDelivery = async (req, res) => {
+	try {
+		const {id} = req.params; // Order ID
+		const {product_id} = req.body; // Product Array Item ID
+
+		let order = await Orders.findById(id);
+		if (!order) {
+			return res.status(400).json({status: false, message: "Order not found"});
+		}
+
+		const product = order.products.find(
+			(item) => item._id.toString() === product_id,
+		);
+		if (!product) {
+			return res
+				.status(400)
+				.json({status: false, message: "Product not found in the order"});
+		}
+
+		product.delivery.delivered.is_delivered = true;
+		product.delivery.delivered.date = Date.now();
+
+		await order.save();
+
+		return res.json({
+			status: true,
+			message: "Product delivery status updated successfully",
+			data: order.toObject(),
+		});
+	} catch (error) {
+		console.error(error);
+		return res
+			.status(500)
+			.json({status: false, message: "Internal Server Error"});
+	}
+};
+
+exports.cancelProductDelivery = async (req, res) => {
+	try {
+		const {id} = req.params; // Order ID
+		const {product_id} = req.body; // Product Array Item ID
+
+		let order = await Orders.findById(id);
+		if (!order) {
+			return res.status(400).json({status: false, message: "Order not found"});
+		}
+
+		const product = order.products.find(
+			(item) => item._id.toString() === product_id,
+		);
+		if (!product) {
+			return res
+				.status(400)
+				.json({status: false, message: "Product not found in the order"});
+		}
+
+		product.delivery.cancelled.is_cancelled = true;
+		product.delivery.cancelled.date = Date.now();
+		product.delivery.cancelled.reason = req.body.reason;
+
+		await order.save();
+
+		return res.json({
+			status: true,
+			message: "Product delivery status updated successfully",
+			data: order.toObject(),
+		});
+	} catch (error) {
+		console.error(error);
+		return res
+			.status(500)
+			.json({status: false, message: "Internal Server Error"});
+	}
+};
+exports.doneOrderDelivery = async (req, res) => {
+	try {
+		const {id} = req.params; // Order ID
+
+		let order = await Orders.findById(id);
+		if (!order) {
+			return res.status(400).json({status: false, message: "Order not found"});
+		}
+
+		order.status = 2;
+
+		await order.save();
+
+		return res.json({
+			status: true,
+			message: "Product delivery status updated successfully",
+			data: order.toObject(),
+		});
+	} catch (error) {
+		console.error(error);
+		return res
+			.status(500)
+			.json({status: false, message: "Internal Server Error"});
 	}
 };

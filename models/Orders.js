@@ -17,18 +17,46 @@ const schema = new Schema(
 					type: Number,
 					ref: "products",
 				},
-				quantity: Number,
-				price: Number,
-				initial_price: Number,
+				quantity: {
+					type: Number,
+					default: 0,
+				},
+				color: {
+					type: Number,
+					ref: "colors",
+				},
+				price: {
+					type: Number,
+					default: 0,
+				},
+				initial_price: {
+					type: Number,
+					default: 0,
+				},
 				delivery: {
 					delivered: {
-						is_delivered: Boolean,
-						date: Number,
+						is_delivered: {
+							type: Boolean,
+							default: false,
+						},
+						date: {
+							type: Number,
+							default: 0,
+						},
 					},
 					cancelled: {
-						is_cancelled: Boolean,
-						date: Number,
-						reason: String,
+						is_cancelled: {
+							type: Boolean,
+							default: false,
+						},
+						date: {
+							type: Number,
+							default: 0,
+						},
+						reason: {
+							type: String,
+							default: "null",
+						},
 					},
 				},
 			},

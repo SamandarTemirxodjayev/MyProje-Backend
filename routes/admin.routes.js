@@ -145,5 +145,8 @@ router.delete("/infos/:id", middleware, controller.deleteInfoById);
 
 router.get("/orders", middleware, controller.getAllOrders);
 router.get("/orders/:id", middleware, controller.getOrderById);
+router.put("/orders/done/:id", middleware, controller.submitProductDelivery);
+router.put("/orders/cancel/:id", middleware, controller.cancelProductDelivery);
+router.put("/orders/submit/:id", middleware, controller.doneOrderDelivery);
 
 module.exports = router;
