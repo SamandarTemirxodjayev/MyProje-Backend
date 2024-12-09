@@ -4,6 +4,8 @@ const Orders = require("../models/Orders");
 const Products = require("../models/Products");
 const server = new JSONRPCServer();
 const fs = require("fs");
+const path = require("path");
+const Users = require("../models/Users");
 let error_message;
 server.addMethod("CheckPerformTransaction", async (params) => {
 	let order = await Orders.findById(parseInt(params.account.order_id));
@@ -50,8 +52,6 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 
 	// Subtract the order bonus from the total bonus
 	let netBonus = totalBonusFromProducts - order.bonus;
-	console.log(totalBonusFromProducts);
-	console.log(order.bonus);
 
 	// Calculate the adjusted total amount by subtracting the net bonus from totalAmount
 	if ((totalAmount - netBonus) * 100 !== params.amount) {
@@ -114,11 +114,9 @@ server.addMethod("PerformTransaction", async (params) => {
 		"pay.payme.id": params.id,
 	});
 	if (!order) {
-		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-32504, "Order not found");
 	}
 	if (order.pay.status == "cancelled") {
-		error_message = "Buyurtma Topilmadi";
 		throw new RpcError(-31061, "Order not found");
 	}
 	if (order.pay.payme.perform_time == 0) {
@@ -128,8 +126,10 @@ server.addMethod("PerformTransaction", async (params) => {
 		order.pay.status = "payed";
 		order.pay.pay_date = new Date().toISOString();
 		order.pay.type = "payme";
-		order.status = 1;
+
 		let totalAmount = 0;
+		let totalBonusFromProducts = 0;
+
 		for (const product of order.products) {
 			const productDoc = await Products.findById(product.product);
 			const price = productDoc.sale.is_sale
@@ -137,6 +137,7 @@ server.addMethod("PerformTransaction", async (params) => {
 				: productDoc.price;
 			const subtotal = price * product.quantity;
 			totalAmount += subtotal;
+			totalBonusFromProducts += productDoc.cashback * product.quantity;
 			productDoc.quantity -= product.quantity;
 			if (productDoc.quantity <= 0) {
 				productDoc.stock = false;
@@ -144,6 +145,24 @@ server.addMethod("PerformTransaction", async (params) => {
 			await productDoc.save();
 		}
 
+		let netBonus = totalBonusFromProducts - order.bonus;
+		const user = await Users.findById(order.user);
+
+		// Load max balance from information.json
+		const filePath = path.join(__dirname, "../database", `information.json`);
+		let maxBalance = 0;
+
+		try {
+			const data = await fs.readFile(filePath, "utf-8");
+			const info = JSON.parse(data);
+			maxBalance = info.maxBalance || 0; // Assuming maxBalance is defined in information.json
+		} catch (error) {
+			console.error("Failed to read max balance:", error);
+		}
+
+		// Update user balance with limit
+		user.balance = Math.min(user.balance + netBonus, maxBalance);
+		await user.save();
 		await order.save();
 	}
 
@@ -153,7 +172,6 @@ server.addMethod("PerformTransaction", async (params) => {
 		state: order.pay.payme.state,
 	};
 });
-
 server.addMethod("CreateTransaction", async (params) => {
 	const order = await Orders.findById(parseInt(params.account.order_id));
 	console.log(params);
