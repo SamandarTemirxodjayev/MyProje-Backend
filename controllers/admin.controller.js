@@ -2006,13 +2006,16 @@ exports.searchProducts = async (req, res) => {
 };
 exports.getProductById = async (req, res) => {
 	try {
-		const {lang} = req.query;
 		let product = await Products.findById(req.params.id)
 			.populate("category")
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
 			.populate("photo_urls.color")
+			.populate("collection")
+			.populate("information_uz.key")
+			.populate("information_ru.key")
+			.populate("information_en.key")
 			.populate("solution");
 		if (!product) {
 			return res.status(400).json({
@@ -2021,7 +2024,6 @@ exports.getProductById = async (req, res) => {
 				data: null,
 			});
 		}
-		product = modifyResponseByLang(product, lang, ["name"]);
 		return res.json({
 			status: true,
 			message: "success",
