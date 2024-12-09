@@ -1226,8 +1226,12 @@ exports.getProductsById = async (req, res) => {
 			.populate("category")
 			.populate("subcategory")
 			.populate("innercategory")
-			.populate("photo_urls.color")
 			.populate("brands")
+			.populate("photo_urls.color")
+			.populate("collection")
+			.populate("information_uz.key")
+			.populate("information_ru.key")
+			.populate("information_en.key")
 			.populate("solution");
 		if (!product) {
 			return res.status(404).json({
@@ -1241,9 +1245,10 @@ exports.getProductsById = async (req, res) => {
 			"information",
 			"description",
 			"innercategory.name",
+			"collection.name",
 			"subcategory.name",
+			"photo_urls.color.name",
 			"category.name",
-			"solution.name",
 		]);
 		return res.json({
 			status: true,
