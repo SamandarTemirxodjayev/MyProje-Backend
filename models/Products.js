@@ -209,6 +209,12 @@ const productsSchema = new Schema(
 		versionKey: false,
 	},
 );
+productsSchema.virtual("comments", {
+	ref: "comments",
+	localField: "_id",
+	foreignField: "product",
+	count: true,
+});
 
 productsSchema.plugin(AutoIncrement, {
 	modelName: "products",

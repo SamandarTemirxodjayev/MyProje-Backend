@@ -149,4 +149,8 @@ router.put("/orders/done/:id", middleware, controller.submitProductDelivery);
 router.put("/orders/cancel/:id", middleware, controller.cancelProductDelivery);
 router.put("/orders/submit/:id", middleware, controller.doneOrderDelivery);
 
+router.get("/withdraws", middleware, controller.getAllWithdraws);
+router.get("/withdraws/:id", middleware, controller.getWithdrawsById);
+router.put("/withdraws/:id", middleware, controller.updateWithdrawInformations);
+
 module.exports = router;

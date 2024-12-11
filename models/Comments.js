@@ -35,7 +35,23 @@ const schema = new Schema(
 		versionKey: false,
 	},
 );
+schema.post("save", async function (doc) {
+	const Products = model("products");
+	const count = await model("comments").countDocuments({
+		product: doc.product,
+		status: true,
+	});
+	await Products.findByIdAndUpdate(doc.product, {comments: count});
+});
 
+schema.post("remove", async function (doc) {
+	const Products = model("products");
+	const count = await model("comments").countDocuments({
+		product: doc.product,
+		status: true,
+	});
+	await Products.findByIdAndUpdate(doc.product, {comments: count});
+});
 schema.plugin(AutoIncrement, {
 	modelName: "comments",
 	fieldName: "_id",

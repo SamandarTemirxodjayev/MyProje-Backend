@@ -24,6 +24,14 @@ const schema = new Schema(
 			default: 0,
 			// 0-created, 1-payed, -1-cancelled with money, -2-cancelled without money
 		},
+		payedAt: {
+			type: Number,
+			default: 0,
+		},
+		cancelledAt: {
+			type: Number,
+			default: 0,
+		},
 		createdAt: {
 			type: Number,
 			default: Date.now(),

@@ -21,6 +21,7 @@ const Colors = require("../models/Colors");
 const Orders = require("../models/Orders");
 const Comments = require("../models/Comments");
 const Infos = require("../models/Infos");
+const Withdraws = require("../models/Withdraws");
 
 exports.register = async (req, res) => {
 	try {
@@ -2980,5 +2981,94 @@ exports.doneOrderDelivery = async (req, res) => {
 		return res
 			.status(500)
 			.json({status: false, message: "Internal Server Error"});
+	}
+};
+exports.getAllWithdraws = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, filter = {}} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let withdraws = await Withdraws.find({...filter})
+			.skip(skip)
+			.limit(limit)
+			.populate("user");
+		const total = await Withdraws.countDocuments({...filter});
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			withdraws,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getWithdrawsById = async (req, res) => {
+	try {
+		let withdraw = await Withdraws.findById(req.params.id).populate("user");
+		if (!withdraw) {
+			return res.status(404).json({
+				status: false,
+				message: "Not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: withdraw,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateWithdrawInformations = async (req, res) => {
+	try {
+		const {status} = req.body;
+		let withdraw = await Withdraws.findById(req.params.id).populate("user");
+		if (!withdraw) {
+			return res.status(404).json({
+				status: false,
+				message: "Not found",
+				data: null,
+			});
+		}
+		if (status == 1) {
+			withdraw.payedAt = new Date();
+		} else if (status == -1) {
+			withdraw.cancelledAt = new Date();
+			const user = await Users.findById(withdraw.user._id);
+			user.balance += withdraw.amount;
+			await user.save();
+		} else if (status == -2) {
+			withdraw.cancelledAt = new Date();
+		}
+		withdraw.status = status;
+		await withdraw.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: withdraw,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
 	}
 };

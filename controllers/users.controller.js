@@ -27,6 +27,7 @@ const fs = require("fs");
 const sharp = require("sharp");
 const Orders = require("../models/Orders");
 const Comments = require("../models/Comments");
+const Withdraws = require("../models/Withdraws");
 
 exports.register = async (req, res) => {
 	try {
@@ -1046,7 +1047,8 @@ exports.getProducts = async (req, res) => {
 			.populate("information_uz.key")
 			.populate("information_ru.key")
 			.populate("information_en.key")
-			.populate("solution");
+			.populate("solution")
+			.populate("comments"); // Populate virtual comments count
 
 		// Apply sorting
 		if (sort === "sales") {
@@ -1083,6 +1085,7 @@ exports.getProducts = async (req, res) => {
 			]);
 
 			modifiedProduct.liked = likedProductIds.includes(product._id);
+			modifiedProduct.comments = product.comments || 0; // Add comments count to response
 			return modifiedProduct;
 		});
 
@@ -1133,7 +1136,12 @@ exports.getLikedProducts = async (req, res) => {
 			.populate("innercategory")
 			.populate("brands")
 			.populate("photo_urls.color")
-			.populate("solution");
+			.populate("collection")
+			.populate("information_uz.key")
+			.populate("information_ru.key")
+			.populate("information_en.key")
+			.populate("solution")
+			.populate("comments");
 
 		let products = await productQuery;
 
@@ -1143,10 +1151,13 @@ exports.getLikedProducts = async (req, res) => {
 				"information",
 				"description",
 				"innercategory.name",
+				"collection.name",
 				"subcategory.name",
+				"photo_urls.color.name",
 				"category.name",
 			]);
 			modifiedProduct.liked = true;
+			modifiedProduct.comments = product.comments || 0;
 			return modifiedProduct;
 		});
 
@@ -1222,17 +1233,21 @@ exports.toggleProductsLike = async (req, res) => {
 exports.getProductsById = async (req, res) => {
 	try {
 		const {lang} = req.query;
-		let product = await Products.findById(req.params.id)
-			.populate("category")
-			.populate("subcategory")
-			.populate("innercategory")
-			.populate("brands")
-			.populate("photo_urls.color")
-			.populate("collection")
-			.populate("information_uz.key")
-			.populate("information_ru.key")
-			.populate("information_en.key")
-			.populate("solution");
+
+		let product = await Products.findById(req.params.id).populate([
+			"category",
+			"subcategory",
+			"innercategory",
+			"brands",
+			"photo_urls.color",
+			"collection",
+			"information_uz.key",
+			"information_ru.key",
+			"information_en.key",
+			"solution",
+			"comments",
+		]);
+
 		if (!product) {
 			return res.status(404).json({
 				status: false,
@@ -1240,7 +1255,8 @@ exports.getProductsById = async (req, res) => {
 				data: null,
 			});
 		}
-		product = modifyResponseByLang(product, lang, [
+
+		const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
 			"name",
 			"information",
 			"description",
@@ -1250,10 +1266,14 @@ exports.getProductsById = async (req, res) => {
 			"photo_urls.color.name",
 			"category.name",
 		]);
+
+		// Add comments count to the response
+		modifiedProduct.comments = product.comments || 0;
+
 		return res.json({
 			status: true,
 			message: "success",
-			data: product,
+			data: modifiedProduct,
 		});
 	} catch (error) {
 		console.error(error);
@@ -1930,6 +1950,35 @@ exports.getCompareProducts = async (req, res) => {
 		let products = await Products.aggregate([
 			{$match: matchQuery},
 			{$sample: {size: parsedLimit}},
+			// Lookup for comments count
+			{
+				$lookup: {
+					from: "comments",
+					let: {productId: "$_id"},
+					pipeline: [
+						{
+							$match: {
+								$expr: {
+									$and: [
+										{$eq: ["$product", "$$productId"]},
+										{$eq: ["$status", true]},
+									],
+								},
+							},
+						},
+						{$count: "count"},
+					],
+					as: "commentsData",
+				},
+			},
+			{
+				$addFields: {
+					comments: {
+						$ifNull: [{$arrayElemAt: ["$commentsData.count", 0]}, 0],
+					},
+				},
+			},
+			{$unset: "commentsData"},
 			// Lookup for category
 			{
 				$lookup: {
@@ -2048,6 +2097,36 @@ exports.createCommentForProduct = async (req, res) => {
 			...req.body,
 			user: req.user._id,
 		});
+		await comment.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: comment,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createWithdraws = async (req, res) => {
+	try {
+		console.log(req.user);
+		if (req.user.balance < req.body.amount) {
+			return res.status(500).json({
+				status: false,
+				message: "Not enough balance",
+			});
+		}
+		const comment = await Withdraws.create({
+			...req.body,
+			user: req.user._id,
+		});
+
+		req.user.balance -= req.body.amount;
+		await req.user.save();
 		await comment.save();
 		return res.json({
 			status: true,

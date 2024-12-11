@@ -60,5 +60,6 @@ router.get("/orders/:id", middleware, controller.getOrderById);
 router.get("/compare-products", middleware, controller.getCompareProducts);
 router.get("/comments", middleware, controller.getAllComments);
 router.post("/comments", middleware, controller.createCommentForProduct);
+router.post("/withdraws", middleware, controller.createWithdraws);
 
 module.exports = router;
