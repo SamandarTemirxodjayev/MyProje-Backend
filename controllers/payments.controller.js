@@ -37,23 +37,18 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 		const subtotal = price * product.quantity;
 		totalAmount += subtotal;
 
-		// Add product bonus to the total bonus
 		totalBonusFromProducts += productDoc.cashback * product.quantity;
 
 		receiptItems.push({
 			title: productDoc.name_uz,
 			price: productDoc.sale.is_sale ? productDoc.sale.price : productDoc.price,
 			count: product.quantity,
-			// code: "06910001005000000",
-			// package_code: "1184760",
 			vat_percent: 12,
 		});
 	}
 
-	// Subtract the order bonus from the total bonus
 	let netBonus = totalBonusFromProducts - order.bonus;
 
-	// Calculate the adjusted total amount by subtracting the net bonus from totalAmount
 	if ((totalAmount - netBonus) * 100 !== params.amount) {
 		error_message =
 			"Buyurtma Summasida Xatolik. Buyurtmani To'liq summasini kiriting";
@@ -62,10 +57,6 @@ server.addMethod("CheckPerformTransaction", async (params) => {
 
 	return {
 		allow: true,
-		// detail: {
-		// 	receipt_type: 0,
-		// 	items: receiptItems,
-		// },
 	};
 });
 

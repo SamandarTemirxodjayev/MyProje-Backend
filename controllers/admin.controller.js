@@ -798,7 +798,6 @@ exports.getSubCategoryById = async (req, res) => {
 			});
 		}
 
-		// Modify the response including populated fields
 		subcategory = modifyResponseByLang(subcategory, lang, [
 			"name",
 			"category.name",
@@ -1357,17 +1356,13 @@ exports.updateUsage = async (req, res) => {
 	const filePath = path.join(__dirname, "../database", `usage-rules.json`);
 
 	try {
-		// Read the existing usage rules
 		let fileContent = await fs.readFile(filePath, "utf8");
 		let usageRules = JSON.parse(fileContent);
 
-		// Extract the updated rules for different languages from the request body
 		const {rule_uz, rule_en, rule_ru} = req.body;
 
-		// Generate the updatedAt timestamp from the backend
 		const updatedAt = Date.now(); // Get the current timestamp
 
-		// Create the updated rule object with language-specific rules
 		const updatedRule = {
 			rule_uz,
 			rule_en,
@@ -1375,18 +1370,14 @@ exports.updateUsage = async (req, res) => {
 			updatedAt,
 		};
 
-		// Find the index of the rule to update (assuming there's one rule)
 		if (usageRules.length > 0) {
 			usageRules[0] = updatedRule; // Replace the first (and only) rule
 		} else {
-			// If no rules exist, add the new one
 			usageRules.push(updatedRule);
 		}
 
-		// Write the updated rules back to the file
 		await fs.writeFile(filePath, JSON.stringify(usageRules, null, 2), "utf8");
 
-		// Send success response
 		return res.json({
 			status: true,
 			message: "Usage rules updated successfully",
@@ -1426,21 +1417,16 @@ exports.updateLinks = async (req, res) => {
 	const filePath = path.join(__dirname, "../database", `links.json`);
 
 	try {
-		// Read the existing links
 		let fileContent = await fs.readFile(filePath, "utf8");
 		let linksData = JSON.parse(fileContent);
 
-		// Extract the updated links from the request body
 		const {email, phone, instagram, telegram, youtube} = req.body;
 
-		// Generate the updatedAt timestamp from the backend
 		const updatedAt = Date.now(); // Get the current timestamp
 
-		// Find the first (and only) set of links to update
 		if (linksData.length > 0) {
 			let currentLinks = linksData[0];
 
-			// Update each field if it exists in the request body
 			currentLinks.email = email || currentLinks.email;
 			currentLinks.phone = {
 				main: phone?.main || currentLinks.phone.main,
@@ -1450,13 +1436,10 @@ exports.updateLinks = async (req, res) => {
 			currentLinks.telegram = telegram || currentLinks.telegram;
 			currentLinks.youtube = youtube || currentLinks.youtube;
 
-			// Update the updatedAt field
 			currentLinks.updatedAt = updatedAt;
 
-			// Save the updated links back into the file
 			linksData[0] = currentLinks;
 		} else {
-			// If no links exist, add a new one
 			linksData.push({
 				email,
 				phone,
@@ -1467,7 +1450,6 @@ exports.updateLinks = async (req, res) => {
 			});
 		}
 
-		// Write the updated links back to the file
 		await fs.writeFile(filePath, JSON.stringify(linksData, null, 2), "utf8");
 
 		// Send success response
@@ -1509,22 +1491,17 @@ exports.updateisWorkding = async (req, res) => {
 	const filePath = path.join(__dirname, "../database", "is-working.json");
 
 	try {
-		// Read the existing file content
 		let fileContent;
 		try {
 			fileContent = await fs.readFile(filePath, "utf8");
 		} catch (err) {
-			// If file doesn't exist, initialize it as an empty array
 			fileContent = "[]";
 		}
 
-		// Parse the JSON content
 		let linksData = JSON.parse(fileContent);
 
-		// Extract the updated value from the request body
 		const {isworking} = req.body;
 
-		// Validate if `isworking` is provided
 		if (typeof isworking === "undefined") {
 			return res.status(400).json({
 				status: false,
@@ -1532,31 +1509,24 @@ exports.updateisWorkding = async (req, res) => {
 			});
 		}
 
-		// Get the current timestamp for `updatedAt`
 		const updatedAt = Date.now();
 
-		// If data exists, update the first record, otherwise create a new one
 		if (linksData.length > 0) {
 			let currentLinks = linksData[0];
 
-			// Update the field and timestamp
 			currentLinks.isworking = isworking;
 			currentLinks.updatedAt = updatedAt;
 
-			// Save the updated data back
 			linksData[0] = currentLinks;
 		} else {
-			// If no data exists, create a new entry
 			linksData.push({
 				isworking,
 				updatedAt,
 			});
 		}
 
-		// Write the updated content back to the file
 		await fs.writeFile(filePath, JSON.stringify(linksData, null, 2), "utf8");
 
-		// Respond with success
 		return res.json({
 			status: true,
 			message: "`isworking` updated successfully",
@@ -1595,22 +1565,17 @@ exports.updateBalance = async (req, res) => {
 	const filePath = path.join(__dirname, "../database", "information.json");
 
 	try {
-		// Read the existing file content
 		let fileContent;
 		try {
 			fileContent = await fs.readFile(filePath, "utf8");
 		} catch (err) {
-			// If file doesn't exist, initialize it as an empty array
 			fileContent = "[]";
 		}
 
-		// Parse the JSON content
 		let linksData = JSON.parse(fileContent);
 
-		// Extract the updated value from the request body
 		const {balance} = req.body;
 
-		// Validate if `isworking` is provided
 		if (typeof balance === "undefined") {
 			return res.status(400).json({
 				status: false,
@@ -1618,31 +1583,24 @@ exports.updateBalance = async (req, res) => {
 			});
 		}
 
-		// Get the current timestamp for `updatedAt`
 		const updatedAt = Date.now();
 
-		// If data exists, update the first record, otherwise create a new one
 		if (linksData.length > 0) {
 			let currentLinks = linksData[0];
 
-			// Update the field and timestamp
 			currentLinks.balance = balance;
 			currentLinks.updatedAt = updatedAt;
 
-			// Save the updated data back
 			linksData[0] = currentLinks;
 		} else {
-			// If no data exists, create a new entry
 			linksData.push({
 				balance,
 				updatedAt,
 			});
 		}
 
-		// Write the updated content back to the file
 		await fs.writeFile(filePath, JSON.stringify(linksData, null, 2), "utf8");
 
-		// Respond with success
 		return res.json({
 			status: true,
 			message: "`balance` updated successfully",
@@ -1935,28 +1893,15 @@ exports.getAllProducts = async (req, res) => {
 			"photo_urls.color.name",
 			"category.name",
 		]);
-		return res.json({
-			status: true,
-			message: "success",
-			data: products,
-			_meta: {
-				totalItems: total,
-				currentPage: page,
-				itemsPerPage: limit,
-				totalPages: totalPages,
-			},
-			_links: {
-				self: req.originalUrl,
-				next:
-					page < totalPages
-						? `${req.baseUrl}${req.path}?page=${page + 1}&limit=${limit}`
-						: null,
-				prev:
-					page > 1
-						? `${req.baseUrl}${req.path}?page=${page - 1}&limit=${limit}`
-						: null,
-			},
-		});
+		const response = paginate(
+			page,
+			limit,
+			total,
+			products,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({
