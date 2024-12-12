@@ -1641,7 +1641,8 @@ exports.getAllShoppingGids = async (req, res) => {
 		let shoppingGid = await ShoppingGid.find()
 			.skip(skip)
 			.limit(limit)
-			.populate("brand");
+			.populate("brand")
+			.populate("products");
 		const total = await ShoppingGid.countDocuments();
 
 		const categoriesWithQuantity = await Promise.all(
@@ -1656,7 +1657,7 @@ exports.getAllShoppingGids = async (req, res) => {
 		const modifiedCategories = modifyResponseByLang(
 			categoriesWithQuantity,
 			lang,
-			["name", "description"],
+			["name", "description", "products.name"],
 		);
 
 		const response = paginate(
