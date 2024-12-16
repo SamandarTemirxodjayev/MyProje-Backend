@@ -6,6 +6,9 @@ const productsSchema = new Schema(
 		_id: {
 			type: Number,
 		},
+		id_code: {
+			type: String,
+		},
 		name_uz: {
 			type: String,
 		},
