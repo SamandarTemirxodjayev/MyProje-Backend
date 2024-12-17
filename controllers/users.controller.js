@@ -28,7 +28,6 @@ const sharp = require("sharp");
 const Orders = require("../models/Orders");
 const Comments = require("../models/Comments");
 const Withdraws = require("../models/Withdraws");
-const uploadFile = require("../utils/uploadFile");
 
 exports.register = async (req, res) => {
 	try {
