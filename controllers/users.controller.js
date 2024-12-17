@@ -28,6 +28,7 @@ const sharp = require("sharp");
 const Orders = require("../models/Orders");
 const Comments = require("../models/Comments");
 const Withdraws = require("../models/Withdraws");
+const uploadFile = require("../utils/uploadFile");
 
 exports.register = async (req, res) => {
 	try {
@@ -1504,8 +1505,16 @@ exports.getOrderListInFile = async (req, res) => {
 		const totalAmount = tableData.reduce((sum, item) => sum + item.total, 0);
 
 		// Generate the PDF
+		const publicDir = path.join("..", "public");
+		if (!fs.existsSync(publicDir)) {
+			fs.mkdirSync(publicDir, {recursive: true});
+		}
+
+		// Generate the PDF
 		const doc = new PDFDocument();
-		const pdfPath = "order_list.pdf";
+		let pdfFileName = `order_list_${Date.now()}.pdf`;
+		let pdfPath = path.join(publicDir, pdfFileName);
+		pdfPath = path.join(__dirname, "..", "cdn", "public", pdfPath);
 		doc.registerFont("Roboto", "fonts/Roboto-Black.ttf");
 		doc.font("Roboto");
 
@@ -1652,13 +1661,12 @@ exports.getOrderListInFile = async (req, res) => {
 			});
 
 		doc.end();
-
-		const filePath = path.join(__dirname, "..", pdfPath); // Adjust the path to your file
-		return res.sendFile(filePath, (err) => {
-			if (err) {
-				console.error("Error sending file:", err);
-				res.status(500).send("Error sending file");
-			}
+		return res.json({
+			status: true,
+			message: "success",
+			data: {
+				url: `https://cdn.myproje.uz/${pdfFileName}`,
+			},
 		});
 	} catch (error) {
 		console.error(error);
