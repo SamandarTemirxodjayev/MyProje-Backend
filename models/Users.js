@@ -51,7 +51,7 @@ const usersSchema = new Schema(
 			type: Number,
 			default: 0,
 		},
-		direction: {
+		directions: {
 			type: Number,
 			ref: "directions",
 		},
