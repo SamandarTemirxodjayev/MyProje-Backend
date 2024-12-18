@@ -661,11 +661,20 @@ exports.getPopulars = async (req, res) => {
 		page = parseInt(page);
 		limit = parseInt(limit);
 
-		// Fetch popular documents from all collections
+		// Fetch popular documents from all collections with proper population
 		const [categories, subcategories, innerCategories] = await Promise.all([
 			Category.find({"popular.is_popular": true}).lean(),
-			Subcategories.find({"popular.is_popular": true}).lean(),
-			InnerCategory.find({"popular.is_popular": true}).lean(),
+			Subcategories.find({"popular.is_popular": true})
+				.populate("category")
+				.lean(),
+			InnerCategory.find({"popular.is_popular": true})
+				.populate({
+					path: "subcategory",
+					populate: {
+						path: "category",
+					},
+				})
+				.lean(),
 		]);
 
 		// Add type and relationship fields to each item
@@ -677,13 +686,13 @@ exports.getPopulars = async (req, res) => {
 			...subcategories.map((item) => ({
 				...item,
 				type: "subcategory",
-				category: item.category, // Add category ID
+				category: item.category, // Now contains full category data
 			})),
 			...innerCategories.map((item) => ({
 				...item,
 				type: "innercategory",
-				category: item.subcategory?.category || null, // Add connected category ID (if available)
-				subcategory: item.subcategory, // Add subcategory ID
+				category: item.subcategory?.category || null, // Now contains full category data
+				subcategory: item.subcategory, // Contains full subcategory data
 			})),
 		];
 
