@@ -111,9 +111,9 @@ exports.editProfile = async (req, res) => {
 exports.getMe = async (req, res) => {
 	try {
 		const {lang} = req.query;
-		const user = await Users.findById(req.user._id).populate("direction");
+		const user = await Users.findById(req.user._id).populate("directions");
 		let {password, visitedRoutes, ...result} = user._doc;
-		result = modifyResponseByLang(result, lang, ["direction.name"]);
+		result = modifyResponseByLang(result, lang, ["directions.name"]);
 		const filePath = path.join(__dirname, "../database", `information.json`);
 		let filehandle = await open(filePath, "r");
 		let data = "";
