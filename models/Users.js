@@ -28,10 +28,19 @@ const usersSchema = new Schema(
 			type: String,
 			default: "",
 		},
-		photo_url: {
-			type: String,
-			default: "https://cdn.myproje.uz/large/67529f70b63e267661939b25.webp",
-		},
+		photo_urls: [
+			{
+				url: {
+					type: String,
+					default: "https://cdn.myproje.uz/large/67529f70b63e267661939b25.webp",
+				},
+				id: {
+					type: String,
+					default: "1",
+				},
+			},
+		],
+		
 		birthday: {
 			type: Number,
 		},

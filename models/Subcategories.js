@@ -15,9 +15,16 @@ const subcategoryiesSchema = new Schema(
 		name_en: {
 			type: String,
 		},
-		photo_url: {
-			type: String,
-		},
+		photo_urls: [
+			{
+				url: {
+					type: String,
+				},
+				id: {
+					type: String,
+				},
+			},
+		],
 		category: {
 			type: Number,
 			ref: "category",

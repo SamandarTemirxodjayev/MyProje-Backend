@@ -742,6 +742,7 @@ exports.getBrandById = async (req, res) => {
 		brand = modifyResponseByLang(brand, lang, [
 			"description.history",
 			"category.name",
+			"catalogs.name",
 		]);
 		return res.json({
 			status: true,

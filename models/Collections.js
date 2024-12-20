@@ -6,10 +6,16 @@ const schema = new Schema(
 		_id: {
 			type: Number,
 		},
-		photo_url: {
-			type: String,
-			required: true,
-		},
+		photo_urls: [
+			{
+				url: {
+					type: String,
+				},
+				id: {
+					type: String,
+				},
+			},
+		],
 		title_uz: {
 			type: String,
 		},

@@ -10,10 +10,16 @@ const brandsSchema = new Schema(
 			type: String,
 			required: true,
 		},
-		photo_url: {
-			type: String,
-			required: true,
-		},
+		photo_urls: [
+			{
+				url: {
+					type: String,
+				},
+				id: {
+					type: String,
+				},
+			},
+		],
 		description: {
 			country: {
 				type: String,
@@ -47,6 +53,28 @@ const brandsSchema = new Schema(
 				},
 			],
 		},
+		catalogs: [
+			{
+				url: {
+					type: String,
+				},
+				name_uz: {
+					type: String,
+				},
+				name_ru: {
+					type: String,
+				},
+				name_en: {
+					type: String,
+				},
+				photo_url: {
+					type: String,
+				},
+				id: {
+					type: String,
+				},
+			},
+		],
 		category: [
 			{
 				type: Number,

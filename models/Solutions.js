@@ -19,10 +19,16 @@ const solutionsSchema = new Schema(
 			type: Number,
 			ref: "brands",
 		},
-		photo_url: {
-			type: String,
-			required: true,
-		},
+		photo_urls: [
+			{
+				url: {
+					type: String,
+				},
+				id: {
+					type: String,
+				},
+			},
+		],
 		createdAt: {
 			type: Number,
 			default: Date.now(),

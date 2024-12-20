@@ -30,10 +30,16 @@ const advantagesSchema = new Schema(
 			type: String,
 			required: true,
 		},
-		photo_url: {
-			type: String,
-			required: true,
-		},
+		photo_urls: [
+			{
+				url: {
+					type: String,
+				},
+				id: {
+					type: String,
+				},
+			},
+		],
 		createdAt: {
 			type: Number,
 			default: Date.now(),

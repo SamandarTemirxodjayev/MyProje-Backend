@@ -40,14 +40,24 @@ const productsSchema = new Schema(
 				name: {
 					type: String,
 				},
+				photo_url: {
+					type: String,
+				},
 				id: {
 					type: String,
 				},
 			},
 		],
-		information_photo: {
-			type: String,
-		},
+		information_photos: [
+			{
+				url: {
+					type: String,
+				},
+				id: {
+					type: String,
+				},
+			},
+		],
 		information_uz: [
 			{
 				key: {
