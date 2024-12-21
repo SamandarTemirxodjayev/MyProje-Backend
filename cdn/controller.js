@@ -122,9 +122,9 @@ exports.upload = async (req, res) => {
 						status: 200,
 						data: {
 							createdAt: files.createdAt,
-							file_id: files.file_id,
-							file_name: files.file_name,
-							file_url: fileUrl,
+							fileId: files.file_id,
+							fileName: files.file_name,
+							fileUrl: fileUrl,
 							_id: files._id,
 						},
 					});
