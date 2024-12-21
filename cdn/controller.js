@@ -146,10 +146,10 @@ exports.upload = async (req, res) => {
 					message: "File uploaded successfully",
 					status: 200,
 					data: {
-						file_url: fileUrl,
-						file_name: req.file.filename,
-						file_id: fileId,
 						createdAt: files.createdAt,
+						fileId: files.file_id,
+						fileName: files.file_name,
+						fileUrl: fileUrl,
 						_id: files._id,
 					},
 				});
