@@ -1524,15 +1524,18 @@ exports.getOrderListInFile = async (req, res) => {
 		let pdfFileName = `order_list_${Date.now()}.pdf`;
 		let pdfPath = path.join(publicDir, pdfFileName);
 		pdfPath = path.join(__dirname, "..", "cdn", "public", pdfPath);
-		doc.registerFont("Roboto", "fonts/Roboto-Black.ttf");
-		doc.font("Roboto");
+		doc.registerFont("Inter-Thin", "fonts/Inter_24pt-Thin.ttf");
+		doc.registerFont("Inter-Bold", "fonts/Inter_24pt-Bold.ttf");
+		doc.registerFont("Inter-Medium", "fonts/Inter_18pt-Medium.ttf");
+		doc.font("Inter-Bold");
 
 		// Save the PDF to a file
 		doc.pipe(fs.createWriteStream(pdfPath));
 
 		// Title
-		doc.fontSize(8).text("Список продутов", {align: "center"});
+		doc.fontSize(12).text("Список продутов", {align: "center"});
 		doc.moveDown();
+		doc.font("Inter-Thin");
 
 		// Table headers
 		const headers = [
@@ -1544,24 +1547,36 @@ exports.getOrderListInFile = async (req, res) => {
 			"Цена",
 			"Доставка",
 		];
-		const startX = 0;
+		const startX = 20;
 		const startY = 100;
-		const columnWidths = [100, 80, 80, 80, 80, 80, 80];
+		const columnWidths = [80, 80, 80, 80, 80, 80, 80];
 		let currentY = startY;
+		const pageWidth = doc.page.width;
 
 		// Draw headers
 		headers.forEach((header, index) => {
-			doc.text(
-				header,
-				startX + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
-				currentY,
-				{
-					width: columnWidths[index],
-					align: "center",
-				},
-			);
+			doc
+				.fillColor("#3c3d3c") // Set text color
+				.fontSize(7)
+				.text(
+					header,
+					startX + columnWidths.slice(0, index).reduce((a, b) => a + b, 0),
+					currentY,
+					{
+						width: columnWidths[index],
+						align: "center",
+					},
+				);
 		});
 		currentY += 30; // Move down after the header
+		doc
+			.strokeColor("#F6F6F6") // Set line color
+			.moveTo(0, 115) // Starting point (left edge)
+			.lineTo(pageWidth, 115) // Ending point (right edge)
+			.stroke();
+
+		doc.fillColor("#000");
+		doc.font("Inter-Medium");
 
 		// Fetch and add table rows
 		for (const row of tableData) {
@@ -1569,21 +1584,21 @@ exports.getOrderListInFile = async (req, res) => {
 
 			// Add photo if available
 			if (imageBuffer) {
-				doc.image(imageBuffer, startX, currentY - 35, {
+				doc.image(imageBuffer, startX, currentY - 25, {
 					width: columnWidths[0],
-					height: 100,
+					height: 80,
 				});
 			}
 
 			// Add other fields (name, quantity, prices, etc.)
-			doc.text(row.name, startX + columnWidths[0], currentY, {
+			doc.text(row.name, startX + columnWidths[0] + 10, currentY + 10, {
 				width: columnWidths[1],
 				align: "left",
 			});
 			doc.text(
 				numberFormat(row.quantity),
-				startX + columnWidths[0] + columnWidths[1],
-				currentY,
+				startX + columnWidths[0] + columnWidths[1] + 5,
+				currentY + 10,
 				{
 					width: columnWidths[2],
 					align: "center",
@@ -1591,8 +1606,8 @@ exports.getOrderListInFile = async (req, res) => {
 			);
 			doc.text(
 				row.salePrice ? `${numberFormat(row.salePrice)} сум` : "-",
-				startX + columnWidths[0] + columnWidths[1] + columnWidths[2],
-				currentY,
+				startX + columnWidths[0] + columnWidths[1] + columnWidths[2] + 5,
+				currentY + 10,
 				{
 					width: columnWidths[3],
 					align: "center",
@@ -1604,8 +1619,9 @@ exports.getOrderListInFile = async (req, res) => {
 					columnWidths[0] +
 					columnWidths[1] +
 					columnWidths[2] +
-					columnWidths[3],
-				currentY,
+					columnWidths[3] +
+					5,
+				currentY + 10,
 				{
 					width: columnWidths[4],
 					align: "center",
@@ -1618,8 +1634,9 @@ exports.getOrderListInFile = async (req, res) => {
 					columnWidths[1] +
 					columnWidths[2] +
 					columnWidths[3] +
-					columnWidths[4],
-				currentY,
+					columnWidths[4] +
+					5,
+				currentY + 10,
 				{
 					width: columnWidths[5],
 					align: "center",
@@ -1633,8 +1650,9 @@ exports.getOrderListInFile = async (req, res) => {
 					columnWidths[2] +
 					columnWidths[3] +
 					columnWidths[4] +
-					columnWidths[5],
-				currentY,
+					columnWidths[5] +
+					5,
+				currentY + 10,
 				{
 					width: columnWidths[6],
 					align: "center",
@@ -1642,32 +1660,94 @@ exports.getOrderListInFile = async (req, res) => {
 			);
 
 			currentY += 70; // Move down after each row
+			doc
+				.strokeColor("#F6F6F6") // Set line color
+				.moveTo(0, currentY - 20) // Starting point (left edge)
+				.lineTo(pageWidth, currentY - 20) // Ending point (right edge)
+				.stroke();
 		}
 
 		doc.moveDown();
-		doc
-			.fontSize(10)
-			.text(`Общее количество продуктов: ${totalQuantity}`, 20, currentY - 5, {
-				width: 200,
-				align: "left",
-			});
-		doc.moveDown();
-		doc.fontSize(10).text(`Общая сумма: ${numberFormat(totalAmount)} сум`, {
-			width: 200,
-			align: "left",
-		});
-		doc.moveDown();
-		doc.fontSize(10).text(`Скидка: ${numberFormat(sale)} сум`, {
-			width: 200,
-			align: "left",
-		});
-		doc.moveDown();
-		doc
-			.fontSize(10)
-			.text(`Общая сумма со скидкой: ${numberFormat(totalAmount - sale)} сум`, {
-				width: 200,
-				align: "left",
-			});
+
+		// Helper function for centered styled text with background
+		function drawStyledTextCentered(doc, label, value, currentY) {
+			const pageWidth = doc.page.width; // Get the page width
+			const textBackgroundWidth = 300; // Total width of the background
+			const textBackgroundHeight = 20; // Height of the text background
+
+			// Calculate X position to center the background
+			const textBackgroundX = (pageWidth - textBackgroundWidth) / 2;
+			const textBackgroundY = currentY; // Y position
+
+			// Save current graphics state
+			doc.save();
+
+			// Draw the background rectangle with rounded corners
+			doc
+				.fillColor("#FAFAFA") // Background color
+				.roundedRect(
+					textBackgroundX,
+					textBackgroundY,
+					textBackgroundWidth,
+					textBackgroundHeight,
+					5,
+				)
+				.fill();
+
+			// Restore text settings
+			doc.restore();
+
+			// Add the label on the left
+			doc
+				.fillColor("#000000") // Text color
+				.fontSize(10)
+				.text(label, textBackgroundX + 10, textBackgroundY + 5, {
+					width: textBackgroundWidth - 100, // Make sure there's enough space for the value
+					align: "left",
+				});
+
+			// Add the value on the right side
+			doc
+				.fontSize(10)
+				.text(
+					value,
+					textBackgroundX + textBackgroundWidth - 100,
+					textBackgroundY + 5,
+					{
+						width: 100, // Fixed width for the value part
+						align: "right",
+					},
+				);
+
+			// Update Y position for the next line
+			return currentY + textBackgroundHeight + 2;
+		}
+
+		// Start drawing each centered styled text block
+		currentY = drawStyledTextCentered(
+			doc,
+			`Общее количество продуктов:`,
+			`${totalQuantity}`,
+			currentY,
+		);
+		currentY = drawStyledTextCentered(
+			doc,
+			`Общая сумма:`,
+			`${numberFormat(totalAmount)} сум`,
+			currentY,
+		);
+		currentY = drawStyledTextCentered(
+			doc,
+			`Скидка:`,
+			`${numberFormat(sale)} сум`,
+			currentY,
+		);
+		currentY = drawStyledTextCentered(
+			doc,
+			`Общая сумма со скидкой:`,
+			`${numberFormat(totalAmount - sale)} сум`,
+			currentY,
+		);
 
 		doc.end();
 		return res.json({
@@ -1675,6 +1755,7 @@ exports.getOrderListInFile = async (req, res) => {
 			message: "success",
 			data: {
 				url: `https://cdn.myproje.uz/${pdfFileName}`,
+				// url: `http://localhost:3001/${pdfFileName}`,
 			},
 		});
 	} catch (error) {
