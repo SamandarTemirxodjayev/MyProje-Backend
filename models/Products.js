@@ -21,7 +21,7 @@ const productsSchema = new Schema(
 		photo_urls: [
 			{
 				url: {
-					type: String,
+					type: Array,
 				},
 				id: {
 					type: String,
@@ -35,13 +35,13 @@ const productsSchema = new Schema(
 		files: [
 			{
 				url: {
-					type: String,
+					type: Array,
 				},
 				name: {
 					type: String,
 				},
 				photo_url: {
-					type: String,
+					type: Array,
 				},
 				id: {
 					type: String,
@@ -94,13 +94,13 @@ const productsSchema = new Schema(
 		description_files: [
 			{
 				url: {
-					type: String,
+					type: Array,
 				},
 				name: {
 					type: String,
 				},
 				photo_url: {
-					type: String,
+					type: Array,
 				},
 				id: {
 					type: String,
