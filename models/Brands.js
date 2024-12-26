@@ -67,9 +67,30 @@ const brandsSchema = new Schema(
 				name_en: {
 					type: String,
 				},
-				photo_url: {
-					type: String,
-				},
+				photo_urls: [
+					{
+						url: {
+							type: String,
+							required: true,
+						},
+						id: {
+							type: String,
+							required: true,
+						},
+					},
+				],
+				file_urls: [
+					{
+						url: {
+							type: String,
+							required: true,
+						},
+						id: {
+							type: String,
+							required: true,
+						},
+					},
+				],
 				id: {
 					type: String,
 				},

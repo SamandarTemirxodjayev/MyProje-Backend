@@ -24,10 +24,16 @@ const usersSchema = new Schema(
 			default: "",
 			unique: true,
 		},
-		resume_url: {
-			type: String,
-			default: "",
-		},
+		resume_urls: [
+			{
+				url: {
+					type: String,
+				},
+				id: {
+					type: String,
+				},
+			},
+		],
 		photo_urls: [
 			{
 				url: {
