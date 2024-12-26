@@ -26,9 +26,16 @@ const schema = new Schema(
 			type: String,
 		},
 		description: {
-			photo_url: {
-				type: String,
-			},
+			photo_urls: [
+				{
+					url: {
+						type: String,
+					},
+					id: {
+						type: String,
+					},
+				},
+			],
 			text_uz: {
 				type: String,
 			},
