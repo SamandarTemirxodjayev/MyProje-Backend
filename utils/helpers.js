@@ -154,19 +154,21 @@ exports.paginate = (
 			totalPages,
 		},
 		_links: {
-			self: `${baseUrl}${path}?page=${page}&limit=${limit}${additionalParams}`,
+			self: `${process.env.SITE_URL}${baseUrl}${path}?page=${page}&limit=${limit}${additionalParams}`,
 			next:
 				page < totalPages
-					? `${baseUrl}${path}?page=${
+					? `${process.env.SITE_URL}${baseUrl}${path}?page=${
 							page + 1
 					  }&limit=${limit}${additionalParams}`
 					: null,
 			prev:
 				page > 1
-					? `${baseUrl}${path}?page=${
+					? `${process.env.SITE_URL}${baseUrl}${path}?page=${
 							page - 1
 					  }&limit=${limit}${additionalParams}`
 					: null,
+			first: `${process.env.SITE_URL}${baseUrl}${path}?page=1&limit=${limit}${additionalParams}`,
+			last: `${process.env.SITE_URL}${baseUrl}${path}?page=${totalPages}&limit=${limit}${additionalParams}`,
 		},
 	};
 };
