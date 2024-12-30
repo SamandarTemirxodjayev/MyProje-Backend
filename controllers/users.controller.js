@@ -348,14 +348,22 @@ exports.searchProductandCategories = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
+			.populate("photo_urls.color")
+			.populate("collection")
+			.populate("information_uz.key")
+			.populate("information_ru.key")
+			.populate("information_en.key")
 			.populate("solution")
+			.populate("comments")
 			.limit(limit);
 		products = modifyResponseByLang(products, lang, [
 			"name",
 			"information",
 			"description",
 			"innercategory.name",
+			"collection.name",
 			"subcategory.name",
+			"photo_urls.color.name",
 			"category.name",
 		]);
 		return res.json({
