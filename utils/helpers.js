@@ -154,21 +154,21 @@ exports.paginate = (
 			totalPages,
 		},
 		_links: {
-			self: `${process.env.SITE_URLS}${baseUrl}${path}?page=${page}&limit=${limit}${additionalParams}`,
+			self: `${process.env.SITE_URLS}${baseUrl}${path}?limit=${limit}&page=${page}${additionalParams}`,
 			next:
 				page < totalPages
-					? `${process.env.SITE_URLS}${baseUrl}${path}?page=${
+					? `${process.env.SITE_URLS}${baseUrl}${path}?limit=${limit}&page=${
 							page + 1
-					  }&limit=${limit}${additionalParams}`
+					  }${additionalParams}`
 					: null,
 			prev:
 				page > 1
-					? `${process.env.SITE_URLS}${baseUrl}${path}?page=${
+					? `${process.env.SITE_URLS}${baseUrl}${path}?limit=${limit}&page=${
 							page - 1
-					  }&limit=${limit}${additionalParams}`
+					  }${additionalParams}`
 					: null,
-			first: `${process.env.SITE_URLS}${baseUrl}${path}?page=1&limit=${limit}${additionalParams}`,
-			last: `${process.env.SITE_URLS}${baseUrl}${path}?page=${totalPages}&limit=${limit}${additionalParams}`,
+			first: `${process.env.SITE_URLS}${baseUrl}${path}?limit=${limit}&page=1${additionalParams}`,
+			last: `${process.env.SITE_URLS}${baseUrl}${path}?limit=${limit}&page=${totalPages}${additionalParams}`,
 		},
 	};
 };
