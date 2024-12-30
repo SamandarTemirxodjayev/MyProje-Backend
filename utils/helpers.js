@@ -148,9 +148,9 @@ exports.paginate = (
 		message: "success",
 		data,
 		_meta: {
-			totalItems,
 			currentPage: page,
-			itemsPerPage: limit,
+			perPage: limit,
+			totalCount: totalItems,
 			totalPages,
 		},
 		_links: {
