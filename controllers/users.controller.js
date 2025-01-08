@@ -874,7 +874,7 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 			subcategories.map(async (subcategory) => {
 				const innerCategories = await InnerCategory.find({
 					subcategory: subcategory._id,
-				}).lean();
+				}).lean().populate("subcategory");
 
 				return {
 					...subcategory,
@@ -885,7 +885,7 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 		subcategoriesWithInnerCategories = modifyResponseByLang(
 			subcategoriesWithInnerCategories,
 			lang,
-			["name", "innerCategories.name"],
+			["name", "innerCategories.name", "innerCategories.subcategory.name"],
 		);
 
 		return res.json({
