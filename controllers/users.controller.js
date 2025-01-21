@@ -863,29 +863,42 @@ exports.getShoppingGidById = async (req, res) => {
 };
 exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 	try {
-		const {lang} = req.query;
-		const {categoryId} = req.params;
+		const { lang } = req.query;
+		const { categoryId } = req.params;
 
-		const subcategories = await Subcategories.find({
-			category: categoryId,
-		}).lean();
+		// Fetch subcategories with the parent category populated
+		const subcategories = await Subcategories.find({ category: categoryId })
+			.lean()
+			.populate("category");
 
+		// Process each subcategory to include inner categories with category data
 		let subcategoriesWithInnerCategories = await Promise.all(
 			subcategories.map(async (subcategory) => {
+				// Fetch inner categories related to the current subcategory
 				const innerCategories = await InnerCategory.find({
 					subcategory: subcategory._id,
-				}).lean().populate("subcategory");
+				})
+					.lean()
+					.populate("subcategory");
+
+				// Attach category data to each inner category
+				const enrichedInnerCategories = innerCategories.map((innerCategory) => ({
+					...innerCategory,
+					category: subcategory.category, // Add category from parent subcategory
+				}));
 
 				return {
 					...subcategory,
-					innerCategories,
+					innerCategories: enrichedInnerCategories,
 				};
-			}),
+			})
 		);
+
+		// Modify response based on language
 		subcategoriesWithInnerCategories = modifyResponseByLang(
 			subcategoriesWithInnerCategories,
 			lang,
-			["name", "innerCategories.name", "innerCategories.subcategory.name"],
+			["name", "innerCategories.name", "innerCategories.subcategory.name", "innerCategories.category.name"]
 		);
 
 		return res.json({
@@ -901,6 +914,7 @@ exports.getSubcategoriesWithInnerCategories = async (req, res) => {
 		});
 	}
 };
+
 exports.getinnercategoriesBySubcategoryid = async (req, res) => {
 	try {
 		let {lang, page = 1, limit = 10} = req.query;
