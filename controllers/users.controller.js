@@ -1278,6 +1278,7 @@ exports.getProductsById = async (req, res) => {
 			"information_en.key",
 			"solution",
 			"comments",
+			"compare_products"
 		]);
 
 		if (!product) {

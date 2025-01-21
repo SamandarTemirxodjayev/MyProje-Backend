@@ -1968,6 +1968,7 @@ exports.getProductById = async (req, res) => {
 			.populate("information_uz.key")
 			.populate("information_ru.key")
 			.populate("information_en.key")
+			.populate("compare_products")
 			.populate("solution");
 		if (!product) {
 			return res.status(400).json({

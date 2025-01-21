@@ -9,6 +9,12 @@ const productsSchema = new Schema(
 		id_code: {
 			type: String,
 		},
+		compare_products: [
+			{
+				type: Number,
+				ref: 'products',
+			}
+		],
 		name_uz: {
 			type: String,
 		},
