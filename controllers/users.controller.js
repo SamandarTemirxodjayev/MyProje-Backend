@@ -1293,6 +1293,9 @@ exports.getProductsById = async (req, res) => {
 			"name",
 			"information",
 			"description",
+			"compare_products.name",
+			"compare_products.information",
+			"compare_products.description",
 			"innercategory.name",
 			"collection.name",
 			"subcategory.name",
@@ -2036,144 +2039,6 @@ exports.getOrderById = async (req, res) => {
 		});
 	} catch (error) {
 		console.log(error);
-		return res.status(500).json({
-			status: false,
-			message: error.message,
-		});
-	}
-};
-exports.getCompareProducts = async (req, res) => {
-	try {
-		const {lang, category, subcategory, innercategory, limit = 10} = req.query;
-
-		const parsedLimit = parseInt(limit, 10);
-		if (isNaN(parsedLimit) || parsedLimit <= 0) {
-			return res.status(400).json({
-				status: false,
-				message: "Invalid limit value",
-			});
-		}
-
-		const matchQuery = {};
-
-		if (category) {
-			matchQuery.category = Number(category);
-		}
-
-		if (subcategory) {
-			matchQuery.subcategory = Number(subcategory);
-		}
-
-		if (innercategory) {
-			matchQuery.innercategory = Number(innercategory);
-		}
-
-		let products = await Products.aggregate([
-			{$match: matchQuery},
-			{$sample: {size: parsedLimit}},
-			// Lookup for comments count
-			{
-				$lookup: {
-					from: "comments",
-					let: {productId: "$_id"},
-					pipeline: [
-						{
-							$match: {
-								$expr: {
-									$and: [
-										{$eq: ["$product", "$$productId"]},
-										{$eq: ["$status", true]},
-									],
-								},
-							},
-						},
-						{$count: "count"},
-					],
-					as: "commentsData",
-				},
-			},
-			{
-				$addFields: {
-					comments: {
-						$ifNull: [{$arrayElemAt: ["$commentsData.count", 0]}, 0],
-					},
-				},
-			},
-			{$unset: "commentsData"},
-			// Lookup for category
-			{
-				$lookup: {
-					from: "categories",
-					localField: "category",
-					foreignField: "_id",
-					as: "category",
-				},
-			},
-			{$unwind: {path: "$category", preserveNullAndEmptyArrays: true}},
-			// Lookup for subcategory
-			{
-				$lookup: {
-					from: "subcategories",
-					localField: "subcategory",
-					foreignField: "_id",
-					as: "subcategory",
-				},
-			},
-			{$unwind: {path: "$subcategory", preserveNullAndEmptyArrays: true}},
-			// Lookup for innercategory
-			{
-				$lookup: {
-					from: "innercategories",
-					localField: "innercategory",
-					foreignField: "_id",
-					as: "innercategory",
-				},
-			},
-			{$unwind: {path: "$innercategory", preserveNullAndEmptyArrays: true}},
-			// Lookup for brands
-			{
-				$lookup: {
-					from: "brands",
-					localField: "brands",
-					foreignField: "_id",
-					as: "brands",
-				},
-			},
-			// Lookup for photo URLs color
-			{
-				$lookup: {
-					from: "colors",
-					localField: "photo_urls.color",
-					foreignField: "_id",
-					as: "photo_urls.color",
-				},
-			},
-			// Lookup for solution
-			{
-				$lookup: {
-					from: "solutions",
-					localField: "solution",
-					foreignField: "_id",
-					as: "solution",
-				},
-			},
-		]);
-
-		products = modifyResponseByLang(products, lang, [
-			"name",
-			"information",
-			"description",
-			"innercategory.name",
-			"subcategory.name",
-			"category.name",
-		]);
-
-		return res.status(200).json({
-			status: true,
-			data: products,
-		});
-	} catch (error) {
-		console.error(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,

@@ -57,7 +57,6 @@ router.post("/order-file", middleware, controller.getOrderListInFile);
 router.post("/orders", middleware, controller.createOrder);
 router.get("/orders", middleware, controller.getAllOrders);
 router.get("/orders/:id", middleware, controller.getOrderById);
-router.get("/compare-products", middleware, controller.getCompareProducts);
 router.get("/comments", middleware, controller.getAllComments);
 router.post("/comments", middleware, controller.createCommentForProduct);
 router.post("/withdraws", middleware, controller.createWithdraws);
