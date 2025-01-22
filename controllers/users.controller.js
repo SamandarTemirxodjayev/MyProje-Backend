@@ -28,6 +28,7 @@ const sharp = require("sharp");
 const Orders = require("../models/Orders");
 const Comments = require("../models/Comments");
 const Withdraws = require("../models/Withdraws");
+const Counter = require("../models/Counter");
 
 exports.register = async (req, res) => {
 	try {
@@ -1496,6 +1497,33 @@ exports.getMaxBalance = async (req, res) => {
 function numberFormat(number) {
 	return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
+async function getContractId() {
+  try {
+    // Find the counter document
+    let counter = await Counter.findOne({
+      model: "contract",
+      field: "contract",
+    });
+
+    if (!counter) {
+      // If no document exists, create a new one
+      counter = await Counter.create({
+        model: "contract",
+        field: "contract",
+				count: 0
+      });
+
+    }
+
+		counter.count++;
+		await counter.save();
+
+    return counter.count;
+  } catch (error) {
+    console.error("Error fetching or creating counter:", error);
+    throw error;
+  }
+}
 exports.getOrderListInFile = async (req, res) => {
 	try {
 		// Extract products from request body
@@ -1511,6 +1539,8 @@ exports.getOrderListInFile = async (req, res) => {
 				message: "No products found.",
 			});
 		}
+
+		const contractId = await getContractId()
 
 		// Process each product
 		const tableData = products.map((item) => {
@@ -1553,15 +1583,55 @@ exports.getOrderListInFile = async (req, res) => {
 		doc.registerFont("Inter-Thin", "fonts/Inter_24pt-Thin.ttf");
 		doc.registerFont("Inter-Bold", "fonts/Inter_24pt-Bold.ttf");
 		doc.registerFont("Inter-Medium", "fonts/Inter_18pt-Medium.ttf");
-		doc.font("Inter-Bold");
+		doc.font("Inter-Medium");
 
 		// Save the PDF to a file
 		doc.pipe(fs.createWriteStream(pdfPath));
 
+		//logo
+		const {visitedRoutes, ...user} = req.user._doc;
+		const logoImage = user.photo_url ? await fetchImageBuffer(user.photo_url) : null;
+
+			// Add photo if available
+			if (logoImage) {
+				doc.image(logoImage, 0, 0, {
+					width: 70,
+					height: 70,
+				});
+			}
+
+			const now = new Date();
+
+// Format the current date
+		const formattedDate = `${String(now.getDate()).padStart(2, "0")}-${String(
+			now.getMonth() + 1,
+		).padStart(2, "0")}-${now.getFullYear()}`;
+
+		// Calculate the date 30 days from now
+		const validUntil = new Date(now);
+		validUntil.setDate(validUntil.getDate() + 30); // Add 30 days
+
+		const formattedValidUntil = `${String(validUntil.getDate()).padStart(2, "0")}-${String(
+			validUntil.getMonth() + 1,
+		).padStart(2, "0")}-${validUntil.getFullYear()}`;
+
 		// Title
-		doc.fontSize(12).text("Список продутов", {align: "center"});
+		doc.fontSize(10).text(`КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ №${contractId}`, { align: "center" });
+		doc.moveDown();
+		doc.fontSize(10).text(`Дата: ${formattedDate}`, 40);
+		doc.moveDown();
+		doc.fontSize(10).text(`Действительно до: ${formattedValidUntil}`, 40);
+		doc.moveDown();
+		doc.fontSize(10).text(`Уважаемый ${req.body.client_name},`, 40);
+		doc.moveDown();
+		doc.fontSize(10).text(`Мы рады представить подборку материалов и предметов интерьера для Вашего проекта. Каждая позиция тщательно подобрана, чтобы создать гармоничное и функциональное пространство, полностью отвечающее Вашим потребностям.`, 40);
+		doc.moveDown();
+		
+		doc.font("Inter-Bold");
+		doc.fontSize(10).text(`СПЕЦИФИКАЦИЯ`, 40);
 		doc.moveDown();
 		doc.font("Inter-Thin");
+
 
 		// Table headers
 		const headers = [
@@ -1573,9 +1643,9 @@ exports.getOrderListInFile = async (req, res) => {
 			"Цена",
 			"Доставка",
 		];
-		const startX = 20;
-		const startY = 100;
-		const columnWidths = [80, 80, 80, 80, 80, 80, 80];
+		const startX = 40;
+		const startY = 250;
+		const columnWidths = [40, 80, 80, 80, 80, 80, 80];
 		let currentY = startY;
 		const pageWidth = doc.page.width;
 
@@ -1606,18 +1676,18 @@ exports.getOrderListInFile = async (req, res) => {
 
 		// Fetch and add table rows
 		for (const row of tableData) {
-			const imageBuffer = row.photo ? await fetchImageBuffer(row.photo) : null;
+			const imageBuffer = row.photo ? await fetchImageBuffer(row.photo[0].url) : null;
 
 			// Add photo if available
 			if (imageBuffer) {
-				doc.image(imageBuffer, startX, currentY - 25, {
+				doc.image(imageBuffer, startX, currentY, {
 					width: columnWidths[0],
-					height: 80,
+					height: 40,
 				});
 			}
 
 			// Add other fields (name, quantity, prices, etc.)
-			doc.text(row.name, startX + columnWidths[0] + 10, currentY + 10, {
+			doc.text(row.name, startX + columnWidths[0] + 20, currentY + 10, {
 				width: columnWidths[1],
 				align: "left",
 			});
@@ -1775,12 +1845,28 @@ exports.getOrderListInFile = async (req, res) => {
 			currentY,
 		);
 
+		doc.moveDown();
+		doc.font("Inter-Medium");
+		doc.fontSize(10).text(`Условия:`, 40);
+		doc.moveDown();
+		doc.fontSize(10).text(`1. Срок действия цен: 30 дней`, 60);
+		doc.fontSize(10).text(`2. Условия оплаты: 70% предоплата, 30% перед отгрузкой`, 60);
+		doc.fontSize(10).text(`3. Доставка согласовывается отдельно для каждой позиции`, 60);
+		doc.moveDown();
+		doc.fontSize(10).text(`Тел: ${user.phone_number} Email: ${user.email}`, 40);
+		doc.moveDown();
+		doc.fontSize(10).text(`Примечания:`, 40);
+		doc.moveDown();
+		doc.fontSize(10).text(`• Цены указаны в сумах`, 60);
+		doc.fontSize(10).text(`• Сроки поставки указаны с момента внесения предоплаты`, 60);
+		doc.fontSize(10).text(`• Изображения товаров могут незначительно отличаться от оригинала`, 60);
+
 		doc.end();
 		return res.json({
 			status: true,
 			message: "success",
 			data: {
-				url: `https://cdn.myproje.uz/${pdfFileName}`,
+				url: `${process.env.SITE_URL}${pdfFileName}`,
 				// url: `http://localhost:3001/${pdfFileName}`,
 			},
 		});
