@@ -131,6 +131,18 @@ router.get("/colors/:id", middleware, controller.getColorById);
 router.put("/colors/:id", middleware, controller.updateColorById);
 router.delete("/colors/:id", middleware, controller.deleteColorById);
 
+router.post("/materials", middleware, controller.createMaterial);
+router.get("/materials", middleware, controller.getAllMaterials);
+router.get("/materials/:id", middleware, controller.getMaterialById);
+router.put("/materials/:id", middleware, controller.updateMaterialById);
+router.delete("/materials/:id", middleware, controller.deleteMaterialById);
+
+router.post("/countries", middleware, controller.createCountry);
+router.get("/countries", middleware, controller.getAllCountries);
+router.get("/countries/:id", middleware, controller.getCountryById);
+router.put("/countries/:id", middleware, controller.updateCountryById);
+router.delete("/countries/:id", middleware, controller.deleteCountryById);
+
 router.post("/comments", middleware, controller.createComment);
 router.get("/comments", middleware, controller.getAllComments);
 router.get("/comments/:id", middleware, controller.getCommentById);

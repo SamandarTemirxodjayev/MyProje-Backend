@@ -29,6 +29,8 @@ const Orders = require("../models/Orders");
 const Comments = require("../models/Comments");
 const Withdraws = require("../models/Withdraws");
 const Counter = require("../models/Counter");
+const Materials = require("../models/Materials");
+const Countries = require("../models/Countries");
 
 exports.register = async (req, res) => {
 	try {
@@ -349,8 +351,10 @@ exports.searchProductandCategories = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
-			.populate("photo_urls.color")
 			.populate("collection")
+			.populate("summary_informations.color")
+			.populate("summary_informations.material")
+			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
 			.populate("information_en.key")
@@ -362,9 +366,10 @@ exports.searchProductandCategories = async (req, res) => {
 			"information",
 			"description",
 			"innercategory.name",
+			"summary_informations.color.name",
+			"summary_informations.material.name",
 			"collection.name",
 			"subcategory.name",
-			"photo_urls.color.name",
 			"category.name",
 		]);
 		return res.json({
@@ -995,6 +1000,64 @@ exports.getColors = async (req, res) => {
 		});
 	}
 };
+exports.getAllMaterials = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let materials = await Materials.find().skip(skip).limit(limit);
+		const total = await Materials.countDocuments();
+
+		materials = modifyResponseByLang(materials, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			materials,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllCountries = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let countries = await Countries.find().skip(skip).limit(limit);
+		const total = await Countries.countDocuments();
+
+		countries = modifyResponseByLang(countries, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			countries,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.getProducts = async (req, res) => {
 	try {
 		let {
@@ -1014,7 +1077,7 @@ exports.getProducts = async (req, res) => {
 			z_lte,
 			amount_gte,
 			amount_lte,
-			color,
+			not,
 		} = req.query;
 
 		page = parseInt(page);
@@ -1022,6 +1085,10 @@ exports.getProducts = async (req, res) => {
 		const skip = (page - 1) * limit;
 		const sortOrder = order === "desc" ? -1 : 1;
 
+
+		if (not) {
+			filter["_id"] = { $ne: not };
+		}
 		// Handle delivery day filter
 		if (delivery_day_gte || delivery_day_lte) {
 			filter["delivery.day"] = {};
@@ -1063,10 +1130,6 @@ exports.getProducts = async (req, res) => {
 			}
 		}
 
-		// Handle color filter
-		if (color) {
-			filter["photo_urls.color"] = color;
-		}
 
 		let productQuery = Products.find(filter)
 			.skip(skip)
@@ -1075,8 +1138,10 @@ exports.getProducts = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
-			.populate("photo_urls.color")
 			.populate("collection")
+			.populate("summary_informations.color")
+			.populate("summary_informations.material")
+			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
 			.populate("information_en.key")
@@ -1110,10 +1175,11 @@ exports.getProducts = async (req, res) => {
 				"name",
 				"information",
 				"description",
+				"summary_informations.color.name",
+				"summary_informations.material.name",
 				"innercategory.name",
 				"collection.name",
 				"subcategory.name",
-				"photo_urls.color.name",
 				"category.name",
 			]);
 
@@ -1168,8 +1234,10 @@ exports.getLikedProducts = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
-			.populate("photo_urls.color")
 			.populate("collection")
+			.populate("summary_informations.color")
+			.populate("summary_informations.material")
+			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
 			.populate("information_en.key")
@@ -1184,9 +1252,10 @@ exports.getLikedProducts = async (req, res) => {
 				"information",
 				"description",
 				"innercategory.name",
+				"summary_informations.color.name",
+				"summary_informations.material.name",
 				"collection.name",
 				"subcategory.name",
-				"photo_urls.color.name",
 				"category.name",
 			]);
 			modifiedProduct.liked = true;
@@ -1272,7 +1341,6 @@ exports.getProductsById = async (req, res) => {
 			"subcategory",
 			"innercategory",
 			"brands",
-			"photo_urls.color",
 			"collection",
 			"information_uz.key",
 			"information_ru.key",
@@ -1300,7 +1368,6 @@ exports.getProductsById = async (req, res) => {
 			"innercategory.name",
 			"collection.name",
 			"subcategory.name",
-			"photo_urls.color.name",
 			"category.name",
 		]);
 

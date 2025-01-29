@@ -1,5 +1,5 @@
-const {Schema, model} = require("mongoose");
-const {AutoIncrement} = require("../utils/helpers");
+const { Schema, model } = require("mongoose");
+const { AutoIncrement } = require("../utils/helpers");
 
 const productsSchema = new Schema(
 	{
@@ -27,26 +27,6 @@ const productsSchema = new Schema(
 		photo_urls: [
 			{
 				url: {
-					type: Array,
-				},
-				id: {
-					type: String,
-				},
-				color: {
-					type: Number,
-					ref: "colors",
-				},
-			},
-		],
-		files: [
-			{
-				url: {
-					type: Array,
-				},
-				name: {
-					type: String,
-				},
-				photo_url: {
 					type: Array,
 				},
 				id: {
@@ -97,30 +77,72 @@ const productsSchema = new Schema(
 				},
 			},
 		],
-		description_files: [
-			{
+		description_files: {
+			item_1: {
 				url: {
 					type: Array,
 				},
 				name: {
 					type: String,
-				},
-				photo_url: {
-					type: Array,
-				},
-				id: {
-					type: String,
+					default: "3D модель",
 				},
 			},
-		],
-		x: {
-			type: Number,
+			item_2: {
+				url: {
+					type: Array,
+				},
+				name: {
+					type: String,
+					default: "Паспорт продукта",
+				},
+			},
+			item_3: {
+				url: {
+					type: Array,
+				},
+				name: {
+					type: String,
+					default: "Текстуры",
+				},
+			},
 		},
-		y: {
-			type: Number,
-		},
-		z: {
-			type: Number,
+		summary_informations: {
+			is_have: {
+				type: Boolean,
+				default: true,
+			},
+			guarantee: {
+				type: Number,
+				default: 1,
+			},
+			x: {
+				type: Number,
+				default: 1,
+			},
+			y: {
+				type: Number,
+				default: 1,
+			},
+			z: {
+				type: Number,
+				default: 1,
+			},
+			weight: {
+				type: Number,
+				default: 1,
+			},
+			material: {
+				type: Number,
+				ref: "materials"
+			},
+			country: {
+				type: Number,
+				ref: "countries"
+			},
+			color: {
+				type: Number,
+				ref: "colors"
+			}
 		},
 		description_uz: {
 			type: String,
@@ -161,7 +183,7 @@ const productsSchema = new Schema(
 		},
 		star: {
 			type: Number,
-			default: 5,
+			default: 0,
 			max: 5,
 			min: 0,
 		},
@@ -193,18 +215,6 @@ const productsSchema = new Schema(
 			day: {
 				type: Number,
 				default: 1,
-			},
-			kuryer: {
-				amount: {
-					type: Number,
-					default: 0,
-				},
-			},
-			pick_up: {
-				amount: {
-					type: Number,
-					default: 0,
-				},
 			},
 		},
 		createdAt: {

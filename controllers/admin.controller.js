@@ -22,6 +22,8 @@ const Orders = require("../models/Orders");
 const Comments = require("../models/Comments");
 const Infos = require("../models/Infos");
 const Withdraws = require("../models/Withdraws");
+const Materials = require("../models/Materials");
+const Countries = require("../models/Countries");
 
 exports.register = async (req, res) => {
 	try {
@@ -1874,8 +1876,10 @@ exports.getAllProducts = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
-			.populate("photo_urls.color")
 			.populate("collection")
+			.populate("summary_informations.color")
+			.populate("summary_informations.material")
+			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
 			.populate("information_en.key")
@@ -1888,10 +1892,11 @@ exports.getAllProducts = async (req, res) => {
 			"name",
 			"information",
 			"description",
+			"summary_informations.color.name",
+			"summary_informations.material.name",
 			"innercategory.name",
 			"collection.name",
 			"subcategory.name",
-			"photo_urls.color.name",
 			"category.name",
 		]);
 		const response = paginate(
@@ -1963,8 +1968,10 @@ exports.getProductById = async (req, res) => {
 			.populate("subcategory")
 			.populate("innercategory")
 			.populate("brands")
-			.populate("photo_urls.color")
 			.populate("collection")
+			.populate("summary_informations.color")
+			.populate("summary_informations.material")
+			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
 			.populate("information_en.key")
@@ -2513,6 +2520,244 @@ exports.deleteColorById = async (req, res) => {
 			status: true,
 			message: "success",
 			data: color,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createMaterial = async (req, res) => {
+	try {
+		const material = await Materials.create(req.body);
+		await material.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: material,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllMaterials = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let materials = await Materials.find().skip(skip).limit(limit);
+		const total = await Materials.countDocuments();
+
+		materials = modifyResponseByLang(materials, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			materials,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getMaterialById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let material = await Materials.findById(req.params.id);
+		if (!material) {
+			return res.status(400).json({
+				status: false,
+				message: "material not found",
+				data: null,
+			});
+		}
+		material = modifyResponseByLang(material, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: material,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateMaterialById = async (req, res) => {
+	try {
+		const material = await Materials.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!material) {
+			return res.status(400).json({
+				status: false,
+				message: "material not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: material,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteMaterialById = async (req, res) => {
+	try {
+		const material = await Materials.findByIdAndDelete(req.params.id);
+		if (!material) {
+			return res.status(400).json({
+				status: false,
+				message: "material not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: material,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createCountry = async (req, res) => {
+	try {
+		const country = await Countries.create(req.body);
+		await country.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: country,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllCountries = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let countries = await Countries.find().skip(skip).limit(limit);
+		const total = await Countries.countDocuments();
+
+		countries = modifyResponseByLang(countries, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			countries,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getCountryById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let country = await Countries.findById(req.params.id);
+		if (!country) {
+			return res.status(400).json({
+				status: false,
+				message: "country not found",
+				data: null,
+			});
+		}
+		country = modifyResponseByLang(country, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: country,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateCountryById = async (req, res) => {
+	try {
+		const country = await Countries.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!country) {
+			return res.status(400).json({
+				status: false,
+				message: "country not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: country,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteCountryById = async (req, res) => {
+	try {
+		const country = await Countries.findByIdAndDelete(req.params.id);
+		if (!country) {
+			return res.status(400).json({
+				status: false,
+				message: "country not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: country,
 		});
 	} catch (error) {
 		console.log(error);
