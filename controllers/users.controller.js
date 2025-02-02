@@ -31,6 +31,10 @@ const Withdraws = require("../models/Withdraws");
 const Counter = require("../models/Counter");
 const Materials = require("../models/Materials");
 const Countries = require("../models/Countries");
+const Dizayns = require("../models/Dizayns");
+const Poverxnosts = require("../models/Poverxnosts");
+const Naznacheniyas = require("../models/Naznacheniyas");
+const Primeneniyas = require("../models/Primeneniyas");
 
 exports.register = async (req, res) => {
 	try {
@@ -354,6 +358,10 @@ exports.searchProductandCategories = async (req, res) => {
 			.populate("collection")
 			.populate("summary_informations.color")
 			.populate("summary_informations.material")
+			.populate("summary_informations.primeneniya")
+			.populate("summary_informations.naznacheniya")
+			.populate("summary_informations.poverxnost")
+			.populate("summary_informations.dizayn")
 			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
@@ -367,6 +375,10 @@ exports.searchProductandCategories = async (req, res) => {
 			"description",
 			"innercategory.name",
 			"summary_informations.color.name",
+			"summary_informations.color.primeneniya",
+			"summary_informations.dizayn.name",
+			"summary_informations.poverxnost.name",
+			"summary_informations.naznacheniya.name",
 			"summary_informations.material.name",
 			"collection.name",
 			"subcategory.name",
@@ -1058,154 +1070,255 @@ exports.getAllCountries = async (req, res) => {
 		});
 	}
 };
-exports.getProducts = async (req, res) => {
+exports.getAllDizayns = async (req, res) => {
 	try {
-		let {
-			page = 1,
-			limit = 10,
-			filter = {},
-			sort,
-			order,
-			lang,
-			delivery_day_gte,
-			delivery_day_lte,
-			x_gte,
-			x_lte,
-			y_gte,
-			y_lte,
-			z_gte,
-			z_lte,
-			amount_gte,
-			amount_lte,
-			not,
-		} = req.query;
-
+		let {page = 1, limit = 10, lang} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
-		const sortOrder = order === "desc" ? -1 : 1;
 
+		let dizayns = await Dizayns.find().skip(skip).limit(limit);
+		const total = await Dizayns.countDocuments();
 
-		if (not) {
-			filter["_id"] = { $ne: not };
-		}
-		// Handle delivery day filter
-		if (delivery_day_gte || delivery_day_lte) {
-			filter["delivery.day"] = {};
-			if (delivery_day_gte)
-				filter["delivery.day"].$gte = parseInt(delivery_day_gte);
-			if (delivery_day_lte)
-				filter["delivery.day"].$lte = parseInt(delivery_day_lte);
-		}
+		dizayns = modifyResponseByLang(dizayns, lang, ["name"]);
 
-		// Handle price filter
-		if (amount_gte || amount_lte) {
-			filter["price"] = {};
-			if (amount_gte) filter["price"].$gte = parseInt(amount_gte);
-			if (amount_lte) filter["price"].$lte = parseInt(amount_lte);
-		}
-
-		// Handle dimension filters
-		if (x_gte || x_lte || y_gte || y_lte || z_gte || z_lte) {
-			if (x_gte || x_lte) {
-				filter["x"] = {};
-				if (x_gte && !isNaN(parseFloat(x_gte)))
-					filter["x"].$gte = parseFloat(x_gte);
-				if (x_lte && !isNaN(parseFloat(x_lte)))
-					filter["x"].$lte = parseFloat(x_lte);
-			}
-			if (y_gte || y_lte) {
-				filter["y"] = {};
-				if (y_gte && !isNaN(parseFloat(y_gte)))
-					filter["y"].$gte = parseFloat(y_gte);
-				if (y_lte && !isNaN(parseFloat(y_lte)))
-					filter["y"].$lte = parseFloat(y_lte);
-			}
-			if (z_gte || z_lte) {
-				filter["z"] = {};
-				if (z_gte && !isNaN(parseFloat(z_gte)))
-					filter["z"].$gte = parseFloat(z_gte);
-				if (z_lte && !isNaN(parseFloat(z_lte)))
-					filter["z"].$lte = parseFloat(z_lte);
-			}
-		}
-
-
-		let productQuery = Products.find(filter)
-			.skip(skip)
-			.limit(limit)
-			.populate("category")
-			.populate("subcategory")
-			.populate("innercategory")
-			.populate("brands")
-			.populate("collection")
-			.populate("summary_informations.color")
-			.populate("summary_informations.material")
-			.populate("summary_informations.country")
-			.populate("information_uz.key")
-			.populate("information_ru.key")
-			.populate("information_en.key")
-			.populate("solution")
-			.populate("comments"); // Populate virtual comments count
-
-		// Apply sorting
-		if (sort === "sales") {
-			productQuery = productQuery.sort({sales: sortOrder});
-		} else if (sort === "new") {
-			productQuery = productQuery.sort({createdAt: -1});
-		} else if (sort === "cheap") {
-			productQuery = productQuery.sort({price: 1});
-		} else if (sort === "expensive") {
-			productQuery = productQuery.sort({price: -1});
-		} else if (sort === "popular") {
-			productQuery = productQuery.sort({sales: 1});
-		}
-
-		// Get liked products
-		const likedProducts = await LikedProducts.find({
-			user_id: req.user._id,
-		}).select("product_id");
-		const likedProductIds = likedProducts.map((like) => like.product_id);
-
-		let products = await productQuery;
-
-		// Process products with language and liked status
-		products = products.map((product) => {
-			const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
-				"name",
-				"information",
-				"description",
-				"summary_informations.color.name",
-				"summary_informations.material.name",
-				"innercategory.name",
-				"collection.name",
-				"subcategory.name",
-				"category.name",
-			]);
-
-			modifiedProduct.liked = likedProductIds.includes(product._id);
-			modifiedProduct.comments = product.comments || 0; // Add comments count to response
-			return modifiedProduct;
-		});
-
-		const total = await Products.countDocuments(filter);
 		const response = paginate(
 			page,
 			limit,
 			total,
-			products,
+			dizayns,
 			req.baseUrl,
 			req.path,
 		);
-
 		return res.json(response);
 	} catch (error) {
-		console.error(error);
+		console.log(error);
 		return res.status(500).json({
 			status: false,
 			message: error.message,
 		});
 	}
+};
+exports.getAllPoverxnosts = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let poverxnosts = await Poverxnosts.find().skip(skip).limit(limit);
+		const total = await Poverxnosts.countDocuments();
+
+		poverxnosts = modifyResponseByLang(poverxnosts, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			poverxnosts,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllPrimeneniyas = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let data = await Primeneniyas.find().skip(skip).limit(limit);
+		const total = await Primeneniyas.countDocuments();
+
+		data = modifyResponseByLang(data, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			data,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllNaznacheniyas = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let data = await Naznacheniyas.find().skip(skip).limit(limit);
+		const total = await Naznacheniyas.countDocuments();
+
+		data = modifyResponseByLang(data, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			data,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getProducts = async (req, res) => {
+  try {
+    let {
+      page = 1,
+      limit = 10,
+      filter = {},
+      sort,
+      order,
+      lang,
+      not,
+      summary_filter, // Filter for x, y, z with $gte/$lte
+    } = req.query;
+
+    page = parseInt(page);
+    limit = parseInt(limit);
+    const skip = (page - 1) * limit;
+    const sortOrder = order === "desc" ? -1 : 1;
+
+    // Handle 'not' filter
+    if (not) {
+      filter["_id"] = { $ne: not };
+    }
+
+    // Handle summary_informations filter (x, y, z with $gte/$lte)
+		if (summary_filter) {
+      const summaryFilters = JSON.parse(summary_filter);
+      for (const key in summaryFilters) {
+        if (summaryFilters[key]) {
+          const filterValue = summaryFilters[key];
+          
+          // Handle object operators ($in, $gte, $lte)
+          if (typeof filterValue === 'object' && !Array.isArray(filterValue)) {
+            filter[`summary_informations.${key}`] = {};
+            
+            // Process each operator
+            for (const operator in filterValue) {
+              if (['$in', '$gte', '$lte'].includes(operator)) {
+                // Convert numeric operators to numbers
+                if (['$gte', '$lte'].includes(operator)) {
+                  filter[`summary_informations.${key}`][operator] = 
+                    parseFloat(filterValue[operator]);
+                } else {
+                  filter[`summary_informations.${key}`][operator] = 
+                    filterValue[operator];
+                }
+              }
+            }
+          } 
+          // Handle direct value assignment
+          else {
+            filter[`summary_informations.${key}`] = filterValue;
+          }
+        }
+      }
+    }
+
+
+    let productQuery = Products.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .populate("category")
+      .populate("subcategory")
+      .populate("innercategory")
+      .populate("brands")
+      .populate("collection")
+      .populate("summary_informations.color")
+      .populate("summary_informations.material")
+      .populate("summary_informations.primeneniya")
+      .populate("summary_informations.naznacheniya")
+      .populate("summary_informations.poverxnost")
+      .populate("summary_informations.dizayn")
+      .populate("summary_informations.country")
+      .populate("information_uz.key")
+      .populate("information_ru.key")
+      .populate("information_en.key")
+      .populate("solution")
+      .populate("comments");
+
+    // Apply sorting (retained for completeness)
+    if (sort === "sales") {
+      productQuery = productQuery.sort({ sales: sortOrder });
+    } else if (sort === "new") {
+      productQuery = productQuery.sort({ createdAt: -1 });
+    } else if (sort === "cheap") {
+      productQuery = productQuery.sort({ price: 1 });
+    } else if (sort === "expensive") {
+      productQuery = productQuery.sort({ price: -1 });
+    } else if (sort === "popular") {
+      productQuery = productQuery.sort({ sales: 1 });
+    }
+
+    // Get liked products
+    const likedProducts = await LikedProducts.find({
+      user_id: req.user._id,
+    }).select("product_id");
+    const likedProductIds = likedProducts.map((like) => like.product_id);
+
+    let products = await productQuery;
+
+    // Process products with language and liked status
+    products = products.map((product) => {
+      const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
+        "name",
+        "information",
+        "description",
+        "summary_informations.color.name",
+        "summary_informations.dizayn.name",
+        "summary_informations.material.name",
+        "summary_informations.poverxnost.name",
+        "summary_informations.naznacheniya.name",
+        "summary_informations.primeneniya.name",
+        "innercategory.name",
+        "collection.name",
+        "subcategory.name",
+        "category.name",
+      ]);
+
+      modifiedProduct.liked = likedProductIds.includes(product._id);
+      modifiedProduct.comments = product.comments || 0;
+      return modifiedProduct;
+    });
+
+    const total = await Products.countDocuments(filter);
+    const response = paginate(page, limit, total, products, req.baseUrl, req.path);
+
+    return res.json(response);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      message: error.message,
+    });
+  }
 };
 
 exports.getLikedProducts = async (req, res) => {
@@ -1237,6 +1350,10 @@ exports.getLikedProducts = async (req, res) => {
 			.populate("collection")
 			.populate("summary_informations.color")
 			.populate("summary_informations.material")
+			.populate("summary_informations.primeneniya")
+			.populate("summary_informations.naznacheniya")
+			.populate("summary_informations.poverxnost")
+			.populate("summary_informations.dizayn")
 			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
@@ -1254,6 +1371,10 @@ exports.getLikedProducts = async (req, res) => {
 				"innercategory.name",
 				"summary_informations.color.name",
 				"summary_informations.material.name",
+				"summary_informations.poverxnost.name",
+				"summary_informations.primeneniya.name",
+				"summary_informations.dizayn.name",
+				"summary_informations.naznacheniya.name",
 				"collection.name",
 				"subcategory.name",
 				"category.name",

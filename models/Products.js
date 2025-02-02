@@ -133,15 +133,35 @@ const productsSchema = new Schema(
 			},
 			material: {
 				type: Number,
-				ref: "materials"
+				ref: "materials",
 			},
 			country: {
 				type: Number,
-				ref: "countries"
+				ref: "countries",
 			},
 			color: {
 				type: Number,
-				ref: "colors"
+				ref: "colors",
+			},
+			dizayn: {
+				type: Number,
+				ref: "dizayns",
+			},
+			poverxnost: {
+				type: Number,
+				ref: "poverxnosts",
+			},
+			naznacheniya: {
+				type: Number,
+				ref: "naznacheniyas",
+			},
+			primeneniya: {
+				type: Number,
+				ref: "primeneniyas",
+			},
+			rektifikat: {
+				type: Boolean,
+				default: false,
 			}
 		},
 		description_uz: {

@@ -137,6 +137,30 @@ router.get("/materials/:id", middleware, controller.getMaterialById);
 router.put("/materials/:id", middleware, controller.updateMaterialById);
 router.delete("/materials/:id", middleware, controller.deleteMaterialById);
 
+router.post("/dizayns", middleware, controller.createDizayn);
+router.get("/dizayns", middleware, controller.getAllDizayns);
+router.get("/dizayns/:id", middleware, controller.getDizaynById);
+router.put("/dizayns/:id", middleware, controller.updateDizaynById);
+router.delete("/dizayns/:id", middleware, controller.deleteDizaynById);
+
+router.post("/poverxnosts", middleware, controller.createPoverxnost);
+router.get("/poverxnosts", middleware, controller.getAllPoverxnosts);
+router.get("/poverxnosts/:id", middleware, controller.getPoverxnostById);
+router.put("/poverxnosts/:id", middleware, controller.updatePoverxnostById);
+router.delete("/poverxnosts/:id", middleware, controller.deletePoverxnostById);
+
+router.post("/naznacheniyas", middleware, controller.createNaznacheniya);
+router.get("/naznacheniyas", middleware, controller.getAllNaznacheniyas);
+router.get("/naznacheniyas/:id", middleware, controller.getNaznacheniyaById);
+router.put("/naznacheniyas/:id", middleware, controller.updateNaznacheniyaById);
+router.delete("/naznacheniyas/:id", middleware, controller.deleteNaznacheniyaById);
+
+router.post("/primeneniyas", middleware, controller.createPrimeneniya);
+router.get("/primeneniyas", middleware, controller.getAllPrimeneniyas);
+router.get("/primeneniyas/:id", middleware, controller.getPrimeneniyaById);
+router.put("/primeneniyas/:id", middleware, controller.updatePrimeneniyaById);
+router.delete("/primeneniyas/:id", middleware, controller.deletePrimeneniyaById);
+
 router.post("/countries", middleware, controller.createCountry);
 router.get("/countries", middleware, controller.getAllCountries);
 router.get("/countries/:id", middleware, controller.getCountryById);

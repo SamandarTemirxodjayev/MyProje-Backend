@@ -24,6 +24,10 @@ const Infos = require("../models/Infos");
 const Withdraws = require("../models/Withdraws");
 const Materials = require("../models/Materials");
 const Countries = require("../models/Countries");
+const Dizayns = require("../models/Dizayns");
+const Poverxnosts = require("../models/Poverxnosts");
+const Naznacheniyas = require("../models/Naznacheniyas");
+const Primeneniyas = require("../models/Primeneniyas");
 
 exports.register = async (req, res) => {
 	try {
@@ -1879,6 +1883,10 @@ exports.getAllProducts = async (req, res) => {
 			.populate("collection")
 			.populate("summary_informations.color")
 			.populate("summary_informations.material")
+			.populate("summary_informations.primeneniya")
+			.populate("summary_informations.naznacheniya")
+			.populate("summary_informations.poverxnost")
+			.populate("summary_informations.dizayn")
 			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
@@ -1887,13 +1895,16 @@ exports.getAllProducts = async (req, res) => {
 
 		const total = await Products.countDocuments(query);
 
-		const totalPages = Math.ceil(total / limit);
 		products = modifyResponseByLang(products, lang, [
 			"name",
 			"information",
 			"description",
 			"summary_informations.color.name",
 			"summary_informations.material.name",
+			"summary_informations.poverxnost.name",
+			"summary_informations.naznacheniya.name",
+			"summary_informations.primeneniya.name",
+			"summary_informations.dizayn.name",
 			"innercategory.name",
 			"collection.name",
 			"subcategory.name",
@@ -1971,6 +1982,9 @@ exports.getProductById = async (req, res) => {
 			.populate("collection")
 			.populate("summary_informations.color")
 			.populate("summary_informations.material")
+			.populate("summary_informations.primeneniya")
+			.populate("summary_informations.naznacheniya")
+			.populate("summary_informations.dizayn")
 			.populate("summary_informations.country")
 			.populate("information_uz.key")
 			.populate("information_ru.key")
@@ -2639,6 +2653,482 @@ exports.deleteMaterialById = async (req, res) => {
 			status: true,
 			message: "success",
 			data: material,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createDizayn = async (req, res) => {
+	try {
+		const dizayn = await Dizayns.create(req.body);
+		await dizayn.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: dizayn,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllDizayns = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let dizayns = await Dizayns.find().skip(skip).limit(limit);
+		const total = await Dizayns.countDocuments();
+
+		dizayns = modifyResponseByLang(dizayns, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			dizayns,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getDizaynById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let dizayn = await Dizayns.findById(req.params.id);
+		if (!dizayn) {
+			return res.status(400).json({
+				status: false,
+				message: "dizayn not found",
+				data: null,
+			});
+		}
+		dizayn = modifyResponseByLang(dizayn, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: dizayn,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateDizaynById = async (req, res) => {
+	try {
+		const dizayn = await Dizayns.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!dizayn) {
+			return res.status(400).json({
+				status: false,
+				message: "dizayn not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: dizayn,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteDizaynById = async (req, res) => {
+	try {
+		const dizayn = await Dizayns.findByIdAndDelete(req.params.id);
+		if (!dizayn) {
+			return res.status(400).json({
+				status: false,
+				message: "dizayn not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: dizayn,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createPoverxnost = async (req, res) => {
+	try {
+		const poverxnost = await Poverxnosts.create(req.body);
+		await poverxnost.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data: poverxnost,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllPoverxnosts = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let poverxnosts = await Poverxnosts.find().skip(skip).limit(limit);
+		const total = await Poverxnosts.countDocuments();
+
+		poverxnosts = modifyResponseByLang(poverxnosts, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			poverxnosts,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getPoverxnostById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let poverxnost = await Poverxnosts.findById(req.params.id);
+		if (!poverxnost) {
+			return res.status(400).json({
+				status: false,
+				message: "poverxnost not found",
+				data: null,
+			});
+		}
+		poverxnost = modifyResponseByLang(poverxnost, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data: poverxnost,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updatePoverxnostById = async (req, res) => {
+	try {
+		const poverxnost = await Poverxnosts.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!poverxnost) {
+			return res.status(400).json({
+				status: false,
+				message: "poverxnost not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: poverxnost,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deletePoverxnostById = async (req, res) => {
+	try {
+		const poverxnost = await Poverxnosts.findByIdAndDelete(req.params.id);
+		if (!poverxnost) {
+			return res.status(400).json({
+				status: false,
+				message: "poverxnost not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data: poverxnost,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createNaznacheniya = async (req, res) => {
+	try {
+		const data = await Naznacheniyas.create(req.body);
+		await data.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllNaznacheniyas = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let data = await Naznacheniyas.find().skip(skip).limit(limit);
+		const total = await Naznacheniyas.countDocuments();
+
+		data = modifyResponseByLang(data, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			data,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getNaznacheniyaById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let data = await Naznacheniyas.findById(req.params.id);
+		if (!data) {
+			return res.status(400).json({
+				status: false,
+				message: "data not found",
+				data: null,
+			});
+		}
+		data = modifyResponseByLang(data, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updateNaznacheniyaById = async (req, res) => {
+	try {
+		const data = await Naznacheniyas.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!data) {
+			return res.status(400).json({
+				status: false,
+				message: "data not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deleteNaznacheniyaById = async (req, res) => {
+	try {
+		const data = await Naznacheniyas.findByIdAndDelete(req.params.id);
+		if (!data) {
+			return res.status(400).json({
+				status: false,
+				message: "data not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.createPrimeneniya = async (req, res) => {
+	try {
+		const data = await Primeneniyas.create(req.body);
+		await data.save();
+		return res.json({
+			status: true,
+			message: "success",
+			data,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getAllPrimeneniyas = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
+
+		let data = await Primeneniyas.find().skip(skip).limit(limit);
+		const total = await Primeneniyas.countDocuments();
+
+		data = modifyResponseByLang(data, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			data,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.getPrimeneniyaById = async (req, res) => {
+	try {
+		const {lang} = req.query;
+		let data = await Primeneniyas.findById(req.params.id);
+		if (!data) {
+			return res.status(400).json({
+				status: false,
+				message: "data not found",
+				data: null,
+			});
+		}
+		data = modifyResponseByLang(data, lang, ["name"]);
+		return res.json({
+			status: true,
+			message: "success",
+			data,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.updatePrimeneniyaById = async (req, res) => {
+	try {
+		const data = await Primeneniyas.findByIdAndUpdate(req.params.id, req.body, {
+			new: true,
+		});
+		if (!data) {
+			return res.status(400).json({
+				status: false,
+				message: "data not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data,
+		});
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
+exports.deletePrimeneniyaById = async (req, res) => {
+	try {
+		const data = await Primeneniyas.findByIdAndDelete(req.params.id);
+		if (!data) {
+			return res.status(400).json({
+				status: false,
+				message: "data not found",
+				data: null,
+			});
+		}
+		return res.json({
+			status: true,
+			message: "success",
+			data,
 		});
 	} catch (error) {
 		console.log(error);
