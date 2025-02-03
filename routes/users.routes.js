@@ -49,6 +49,7 @@ router.get("/poverxnosts", middleware, controller.getAllPoverxnosts);
 router.get("/primeneniyas", middleware, controller.getAllPrimeneniyas);
 router.get("/naznacheniyas", middleware, controller.getAllNaznacheniyas);
 router.get("/products/liked", middleware, controller.getLikedProducts);
+router.get("/stils", middleware, controller.getAllStils);
 router.post("/products/like", middleware, controller.toggleProductsLike);
 router.get("/products/:id", middleware, controller.getProductsById);
 router.get("/collections", middleware, controller.getinspirations);

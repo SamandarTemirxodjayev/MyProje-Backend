@@ -159,6 +159,10 @@ const productsSchema = new Schema(
 				type: Number,
 				ref: "primeneniyas",
 			},
+			stil: {
+				type: Number,
+				ref: "stils",
+			},
 			rektifikat: {
 				type: Boolean,
 				default: false,

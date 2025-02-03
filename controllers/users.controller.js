@@ -35,6 +35,7 @@ const Dizayns = require("../models/Dizayns");
 const Poverxnosts = require("../models/Poverxnosts");
 const Naznacheniyas = require("../models/Naznacheniyas");
 const Primeneniyas = require("../models/Primeneniyas");
+const Stils = require("../models/Stils");
 
 exports.register = async (req, res) => {
 	try {
@@ -358,6 +359,7 @@ exports.searchProductandCategories = async (req, res) => {
 			.populate("collection")
 			.populate("summary_informations.color")
 			.populate("summary_informations.material")
+			.populate("summary_informations.stil")
 			.populate("summary_informations.primeneniya")
 			.populate("summary_informations.naznacheniya")
 			.populate("summary_informations.poverxnost")
@@ -375,7 +377,8 @@ exports.searchProductandCategories = async (req, res) => {
 			"description",
 			"innercategory.name",
 			"summary_informations.color.name",
-			"summary_informations.color.primeneniya",
+			"summary_informations.primeneniya.name",
+			"summary_informations.stil.name",
 			"summary_informations.dizayn.name",
 			"summary_informations.poverxnost.name",
 			"summary_informations.naznacheniya.name",
@@ -1253,6 +1256,7 @@ exports.getProducts = async (req, res) => {
       .populate("collection")
       .populate("summary_informations.color")
       .populate("summary_informations.material")
+      .populate("summary_informations.stil")
       .populate("summary_informations.primeneniya")
       .populate("summary_informations.naznacheniya")
       .populate("summary_informations.poverxnost")
@@ -1294,6 +1298,7 @@ exports.getProducts = async (req, res) => {
         "summary_informations.color.name",
         "summary_informations.dizayn.name",
         "summary_informations.material.name",
+        "summary_informations.stil.name",
         "summary_informations.poverxnost.name",
         "summary_informations.naznacheniya.name",
         "summary_informations.primeneniya.name",
@@ -1350,6 +1355,7 @@ exports.getLikedProducts = async (req, res) => {
 			.populate("collection")
 			.populate("summary_informations.color")
 			.populate("summary_informations.material")
+			.populate("summary_informations.stil")
 			.populate("summary_informations.primeneniya")
 			.populate("summary_informations.naznacheniya")
 			.populate("summary_informations.poverxnost")
@@ -1372,6 +1378,7 @@ exports.getLikedProducts = async (req, res) => {
 				"summary_informations.color.name",
 				"summary_informations.material.name",
 				"summary_informations.poverxnost.name",
+				"summary_informations.stil.name",
 				"summary_informations.primeneniya.name",
 				"summary_informations.dizayn.name",
 				"summary_informations.naznacheniya.name",
@@ -1406,7 +1413,35 @@ exports.getLikedProducts = async (req, res) => {
 		});
 	}
 };
+exports.getAllStils = async (req, res) => {
+	try {
+		let {page = 1, limit = 10, lang} = req.query;
+		page = parseInt(page);
+		limit = parseInt(limit);
+		const skip = (page - 1) * limit;
 
+		let data = await Stils.find().skip(skip).limit(limit);
+		const total = await Stils.countDocuments();
+
+		data = modifyResponseByLang(data, lang, ["name"]);
+
+		const response = paginate(
+			page,
+			limit,
+			total,
+			data,
+			req.baseUrl,
+			req.path,
+		);
+		return res.json(response);
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({
+			status: false,
+			message: error.message,
+		});
+	}
+};
 exports.toggleProductsLike = async (req, res) => {
 	try {
 		const product = await Products.findById(req.body.product_id);

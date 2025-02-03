@@ -161,6 +161,12 @@ router.get("/primeneniyas/:id", middleware, controller.getPrimeneniyaById);
 router.put("/primeneniyas/:id", middleware, controller.updatePrimeneniyaById);
 router.delete("/primeneniyas/:id", middleware, controller.deletePrimeneniyaById);
 
+router.post("/stils", middleware, controller.createStil);
+router.get("/stils", middleware, controller.getAllStils);
+router.get("/stils/:id", middleware, controller.getStilById);
+router.put("/stils/:id", middleware, controller.updateStilById);
+router.delete("/stils/:id", middleware, controller.deleteStilById);
+
 router.post("/countries", middleware, controller.createCountry);
 router.get("/countries", middleware, controller.getAllCountries);
 router.get("/countries/:id", middleware, controller.getCountryById);
