@@ -1988,6 +1988,7 @@ exports.getProductById = async (req, res) => {
 			.populate("summary_informations.stil")
 			.populate("summary_informations.primeneniya")
 			.populate("summary_informations.naznacheniya")
+			.populate("summary_informations.poverxnost")
 			.populate("summary_informations.dizayn")
 			.populate("summary_informations.country")
 			.populate("information_uz.key")

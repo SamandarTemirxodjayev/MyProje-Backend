@@ -1504,7 +1504,14 @@ exports.getProductsById = async (req, res) => {
 			"solution",
 			"comments",
 			"compare_products"
-		]);
+		]).populate("summary_informations.color")
+		.populate("summary_informations.material")
+		.populate("summary_informations.stil")
+		.populate("summary_informations.primeneniya")
+		.populate("summary_informations.naznacheniya")
+		.populate("summary_informations.poverxnost")
+		.populate("summary_informations.dizayn")
+		.populate("summary_informations.country");
 
 		if (!product) {
 			return res.status(404).json({
