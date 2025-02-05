@@ -1251,6 +1251,7 @@ exports.getProducts = async (req, res) => {
       .limit(limit)
       .populate("category")
       .populate("subcategory")
+      .populate("shoppinggid")
       .populate("innercategory")
       .populate("brands")
       .populate("collection")
@@ -1295,6 +1296,8 @@ exports.getProducts = async (req, res) => {
         "name",
         "information",
         "description",
+        "shoppinggid.name",
+        "shoppinggid.description",
         "summary_informations.color.name",
         "summary_informations.dizayn.name",
         "summary_informations.material.name",
@@ -1351,6 +1354,7 @@ exports.getLikedProducts = async (req, res) => {
 			.populate("category")
 			.populate("subcategory")
 			.populate("innercategory")
+			.populate("shoppinggid")
 			.populate("brands")
 			.populate("collection")
 			.populate("summary_informations.color")
@@ -1375,6 +1379,8 @@ exports.getLikedProducts = async (req, res) => {
 				"information",
 				"description",
 				"innercategory.name",
+				"shoppinggid.name",
+				"shoppinggid.description",
 				"summary_informations.color.name",
 				"summary_informations.material.name",
 				"summary_informations.poverxnost.name",
@@ -1498,6 +1504,7 @@ exports.getProductsById = async (req, res) => {
 			"innercategory",
 			"brands",
 			"collection",
+			"shoppinggid",
 			"information_uz.key",
 			"information_ru.key",
 			"information_en.key",
@@ -1524,10 +1531,16 @@ exports.getProductsById = async (req, res) => {
 		const modifiedProduct = modifyResponseByLang(product.toObject(), lang, [
 			"name",
 			"information",
+			"shoppinggid.name",
+			"shoppinggid.description",
 			"description",
-			"compare_products.name",
-			"compare_products.information",
-			"compare_products.description",
+			"summary_informations.color.name",
+			"summary_informations.material.name",
+			"summary_informations.poverxnost.name",
+			"summary_informations.naznacheniya.name",
+			"summary_informations.primeneniya.name",
+			"summary_informations.stil.name",
+			"summary_informations.dizayn.name",
 			"innercategory.name",
 			"collection.name",
 			"subcategory.name",

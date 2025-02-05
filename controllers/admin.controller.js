@@ -1880,6 +1880,7 @@ exports.getAllProducts = async (req, res) => {
 			.populate("category")
 			.populate("subcategory")
 			.populate("innercategory")
+			.populate("shoppinggid")
 			.populate("brands")
 			.populate("collection")
 			.populate("summary_informations.color")
@@ -1900,6 +1901,8 @@ exports.getAllProducts = async (req, res) => {
 		products = modifyResponseByLang(products, lang, [
 			"name",
 			"information",
+			"shoppinggid.name",
+			"shoppinggid.description",
 			"description",
 			"summary_informations.color.name",
 			"summary_informations.material.name",
@@ -1981,6 +1984,7 @@ exports.getProductById = async (req, res) => {
 			.populate("category")
 			.populate("subcategory")
 			.populate("innercategory")
+			.populate("shoppinggid")
 			.populate("brands")
 			.populate("collection")
 			.populate("summary_informations.color")

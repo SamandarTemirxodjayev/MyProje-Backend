@@ -223,6 +223,10 @@ const productsSchema = new Schema(
 			type: Number,
 			ref: "innercategory",
 		},
+		shoppinggid: {
+			type: Number,
+			ref: "shoppinggid",
+		},
 		brands: {
 			type: Number,
 			ref: "brands",

@@ -42,12 +42,6 @@ const shoppingGidSchema = new Schema(
 			type: Number,
 			default: Date.now(),
 		},
-		products: [
-			{
-				type: Number,
-				ref: "products",
-			},
-		],
 		status: {
 			type: Boolean,
 			default: false,
