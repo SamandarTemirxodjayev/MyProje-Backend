@@ -858,13 +858,9 @@ exports.getShoppingGidById = async (req, res) => {
 		const {lang} = req.query;
 		let shoppingGids = await ShoppingGid.findById(req.params.id)
 			.populate("brand")
-			.populate("products");
 		shoppingGids = modifyResponseByLang(shoppingGids, lang, [
 			"name",
 			"description",
-			"products.name",
-			"products.information",
-			"products.description",
 		]);
 		return res.json({
 			status: true,
