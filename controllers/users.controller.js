@@ -1195,7 +1195,25 @@ exports.getProducts = async (req, res) => {
       order,
       lang,
       not,
-      summary_filter, // Filter for x, y, z with $gte/$lte
+      // New query parameters for summary_informations
+      gte_guarantee,
+      lte_guarantee,
+      in_guarantee,
+      gte_x,
+      lte_x,
+      gte_y,
+      lte_y,
+      gte_z,
+      lte_z,
+      in_material,
+      in_country,
+      in_color,
+      in_dizayn,
+      in_poverxnost,
+      in_naznacheniya,
+      in_primeneniya,
+      in_stil,
+			is_have
     } = req.query;
 
     page = parseInt(page);
@@ -1208,40 +1226,83 @@ exports.getProducts = async (req, res) => {
       filter["_id"] = { $ne: not };
     }
 
-    // Handle summary_informations filter (x, y, z with $gte/$lte)
-		if (summary_filter) {
-      const summaryFilters = JSON.parse(summary_filter);
-      for (const key in summaryFilters) {
-        if (summaryFilters[key]) {
-          const filterValue = summaryFilters[key];
-          
-          // Handle object operators ($in, $gte, $lte)
-          if (typeof filterValue === 'object' && !Array.isArray(filterValue)) {
-            filter[`summary_informations.${key}`] = {};
-            
-            // Process each operator
-            for (const operator in filterValue) {
-              if (['$in', '$gte', '$lte'].includes(operator)) {
-                // Convert numeric operators to numbers
-                if (['$gte', '$lte'].includes(operator)) {
-                  filter[`summary_informations.${key}`][operator] = 
-                    parseFloat(filterValue[operator]);
-                } else {
-                  filter[`summary_informations.${key}`][operator] = 
-                    filterValue[operator];
-                }
-              }
-            }
-          } 
-          // Handle direct value assignment
-          else {
-            filter[`summary_informations.${key}`] = filterValue;
-          }
-        }
+    // Build summary_informations filter dynamically using dot notation
+    if (
+      gte_guarantee ||
+      lte_guarantee ||
+      in_guarantee ||
+      gte_x ||
+      lte_x ||
+      gte_y ||
+      lte_y ||
+      gte_z ||
+      lte_z ||
+      in_material ||
+      in_country ||
+      in_color ||
+      in_dizayn ||
+      in_poverxnost ||
+      in_naznacheniya ||
+      is_have ||
+      in_primeneniya ||
+      in_stil
+    ) {
+      // Add guarantee filters
+      if (gte_guarantee || lte_guarantee || in_guarantee) {
+        filter["summary_informations.guarantee"] = {};
+        if (gte_guarantee) filter["summary_informations.guarantee"]["$gte"] = parseFloat(gte_guarantee);
+        if (lte_guarantee) filter["summary_informations.guarantee"]["$lte"] = parseFloat(lte_guarantee);
+        if (in_guarantee) filter["summary_informations.guarantee"]["$in"] = [parseFloat(in_guarantee)];
+      }
+
+      // Add x, y, z filters
+      if (gte_x || lte_x) {
+        filter["summary_informations.x"] = {};
+        if (gte_x) filter["summary_informations.x"]["$gte"] = parseFloat(gte_x);
+        if (lte_x) filter["summary_informations.x"]["$lte"] = parseFloat(lte_x);
+      }
+      if (is_have) {
+        filter["summary_informations.is_have"] = is_have;
+      }
+      if (gte_y || lte_y) {
+        filter["summary_informations.y"] = {};
+        if (gte_y) filter["summary_informations.y"]["$gte"] = parseFloat(gte_y);
+        if (lte_y) filter["summary_informations.y"]["$lte"] = parseFloat(lte_y);
+      }
+      if (gte_z || lte_z) {
+        filter["summary_informations.z"] = {};
+        if (gte_z) filter["summary_informations.z"]["$gte"] = parseFloat(gte_z);
+        if (lte_z) filter["summary_informations.z"]["$lte"] = parseFloat(lte_z);
+      }
+
+      // Add exact match filters
+      if (in_material) {
+        filter["summary_informations.material"] = { $in: [parseInt(in_material)] };
+      }
+      if (in_country) {
+        filter["summary_informations.country"] = { $in: [parseInt(in_country)] };
+      }
+      if (in_color) {
+        filter["summary_informations.color"] = { $in: [parseInt(in_color)] };
+      }
+      if (in_dizayn) {
+        filter["summary_informations.dizayn"] = { $in: [parseInt(in_dizayn)] };
+      }
+      if (in_poverxnost) {
+        filter["summary_informations.poverxnost"] = { $in: [parseInt(in_poverxnost)] };
+      }
+      if (in_naznacheniya) {
+        filter["summary_informations.naznacheniya"] = { $in: [parseInt(in_naznacheniya)] };
+      }
+      if (in_primeneniya) {
+        filter["summary_informations.primeneniya"] = { $in: [parseInt(in_primeneniya)] };
+      }
+      if (in_stil) {
+        filter["summary_informations.stil"] = { $in: [parseInt(in_stil)] };
       }
     }
 
-
+    // Query products
     let productQuery = Products.find(filter)
       .skip(skip)
       .limit(limit)
@@ -1265,7 +1326,7 @@ exports.getProducts = async (req, res) => {
       .populate("solution")
       .populate("comments");
 
-    // Apply sorting (retained for completeness)
+    // Apply sorting
     if (sort === "sales") {
       productQuery = productQuery.sort({ sales: sortOrder });
     } else if (sort === "new") {
@@ -1306,7 +1367,6 @@ exports.getProducts = async (req, res) => {
         "subcategory.name",
         "category.name",
       ]);
-
       modifiedProduct.liked = likedProductIds.includes(product._id);
       modifiedProduct.comments = product.comments || 0;
       return modifiedProduct;
@@ -1314,7 +1374,6 @@ exports.getProducts = async (req, res) => {
 
     const total = await Products.countDocuments(filter);
     const response = paginate(page, limit, total, products, req.baseUrl, req.path);
-
     return res.json(response);
   } catch (error) {
     console.error(error);
@@ -1324,7 +1383,6 @@ exports.getProducts = async (req, res) => {
     });
   }
 };
-
 exports.getLikedProducts = async (req, res) => {
 	try {
 		let {page = 1, limit = 10, filter = {}, sort, order, lang} = req.query;
