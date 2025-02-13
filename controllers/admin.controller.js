@@ -749,16 +749,16 @@ exports.createSubCategory = async (req, res) => {
 };
 exports.getAllSubCategories = async (req, res) => {
 	try {
-		let {page = 1, limit = 10, lang} = req.query;
+		let {page = 1, limit = 10, lang, filter={}} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
-		let subcategory = await Subcategories.find()
+		let subcategory = await Subcategories.find(filter)
 			.skip(skip)
 			.limit(limit)
 			.populate("category");
-		const total = await Subcategories.countDocuments();
+		const total = await Subcategories.countDocuments(filter);
 
 		subcategory = await Promise.all(
 			subcategory.map(async (subcategory) => {
@@ -950,16 +950,16 @@ exports.createInnerCategory = async (req, res) => {
 };
 exports.getAllInnerCategories = async (req, res) => {
 	try {
-		let {page = 1, limit = 10, lang} = req.query;
+		let {page = 1, limit = 10, lang, filter={}} = req.query;
 		page = parseInt(page);
 		limit = parseInt(limit);
 		const skip = (page - 1) * limit;
 
-		let innercategories = await InnerCategory.find()
+		let innercategories = await InnerCategory.find(filter)
 			.skip(skip)
 			.limit(limit)
 			.populate("subcategory");
-		const total = await InnerCategory.countDocuments();
+		const total = await InnerCategory.countDocuments(filter);
 
 		innercategories = await Promise.all(
 			innercategories.map(async (innercategory) => {
