@@ -1213,7 +1213,8 @@ exports.getProducts = async (req, res) => {
       in_naznacheniya,
       in_primeneniya,
       in_stil,
-			is_have
+			is_have,
+			rektifikat
     } = req.query;
 
     page = parseInt(page);
@@ -1245,7 +1246,8 @@ exports.getProducts = async (req, res) => {
       in_naznacheniya ||
       is_have ||
       in_primeneniya ||
-      in_stil
+      in_stil ||
+			rektifikat !== undefined
     ) {
       // Add guarantee filters
       if (gte_guarantee || lte_guarantee || in_guarantee) {
@@ -1300,7 +1302,11 @@ exports.getProducts = async (req, res) => {
       if (in_stil) {
         filter["summary_informations.stil"] = { $in: [parseInt(in_stil)] };
       }
+			if (rektifikat !== undefined) {
+        filter["summary_informations.rektifikat"] = rektifikat === "true"; // Convert string to boolean
+      }
     }
+		console.log(filter);
 
     // Query products
     let productQuery = Products.find(filter)
