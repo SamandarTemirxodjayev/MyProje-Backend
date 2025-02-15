@@ -1224,8 +1224,10 @@ exports.getProducts = async (req, res) => {
 
     // Handle 'not' filter
     if (not) {
-      filter["_id"] = { $ne: not };
-    }
+			// Initialize filter["_id"] as an object if it doesn't exist
+			filter["_id"] = filter["_id"] || {};
+			filter["_id"]["$ne"] = parseFloat(not);
+		}
 
     // Build summary_informations filter dynamically using dot notation
     if (
