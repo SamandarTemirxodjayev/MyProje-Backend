@@ -1214,7 +1214,9 @@ exports.getProducts = async (req, res) => {
       in_primeneniya,
       in_stil,
 			is_have,
-			rektifikat
+			rektifikat,
+			gte_price,
+			lte_price
     } = req.query;
 
     page = parseInt(page);
@@ -1227,6 +1229,25 @@ exports.getProducts = async (req, res) => {
 			// Initialize filter["_id"] as an object if it doesn't exist
 			filter["_id"] = filter["_id"] || {};
 			filter["_id"]["$ne"] = parseFloat(not);
+		}
+		if (gte_price || lte_price) {
+			// Use $or to handle both cases: sale.is_sale = true and sale.is_sale = false
+			filter["$or"] = [
+				{
+					"sale.is_sale": true,
+					"sale.price": {
+						...(gte_price && { $gte: parseFloat(gte_price) }),
+						...(lte_price && { $lte: parseFloat(lte_price) }),
+					},
+				},
+				{
+					"sale.is_sale": false,
+					price: {
+						...(gte_price && { $gte: parseFloat(gte_price) }),
+						...(lte_price && { $lte: parseFloat(lte_price) }),
+					},
+				},
+			];
 		}
 
     // Build summary_informations filter dynamically using dot notation
